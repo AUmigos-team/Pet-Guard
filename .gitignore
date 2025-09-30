@@ -8,6 +8,19 @@ local.properties
 # Log/OS Files
 *.log
 
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# dotenv
+.env
+.env.*
+
+# node
+node_modules/
+
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/
@@ -32,3 +45,7 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Ide trash
+out/
+
