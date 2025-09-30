@@ -3,6 +3,7 @@ package br.com.petguard.data.database
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 @Entity(tableName = "report")
 data class Report (
@@ -31,8 +32,8 @@ data class Report (
     val status: String = "PENDING",
 
     @ColumnInfo(name = "createdAt")
-    val createdAt: String? = null,
+    val createdAt: LocalDateTime? = null,
 
-    @ColumnInfo(name = "updateAt")
-    val updateAt: String? = null
+    @ColumnInfo(name = "updatedAt")
+    val updatedAt: LocalDateTime? = null
 )
