@@ -28,7 +28,7 @@ data class Report (
     val videoPath: String? = null,
 
     @ColumnInfo(name = "status")
-    val status: String = "PENDENTE",
+    val status: String = "PENDING",
 
     @ColumnInfo(name = "createdAt")
     val createdAt: String? = null,
