@@ -1,13 +1,23 @@
 package br.com.petguard.ui.screens
 
+import android.provider.CalendarContract.Colors
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExposedDropdownMenuDefaults.outlinedTextFieldColors
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults.colors
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
@@ -22,45 +32,96 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import br.com.petguard.R
 
 @Composable
 fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val ralewayDots = FontFamily(Font(R.font.raleway_dots_regular))
+    val windSong = FontFamily(Font(R.font.windsong_regular))
+    val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Top,
     ) {
-        Text(
-            text = "GUARD Pet",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF8C9E70)
-        )
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "GUARD",
+                fontSize = 55.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = ralewayDots,
+                color = Color(0xFF7E8C54)
+            )
+
+            Text(
+                text = "Pet",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = windSong,
+                color = Color(0xFF7E8C54),
+                modifier = Modifier
+                    .offset(x = (70).dp, y = 25.dp)
+            )
+        }
+
         Text(
             text = "Ajude a proteger os animais",
             fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(vertical = 8.dp)
+            fontWeight = FontWeight.Light,
+            fontFamily = playpenSansVariableFontWght,
+            color = Color(0xFF452001),
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .align(Alignment.CenterHorizontally)
         )
 
+        Spacer(modifier = Modifier.height(150.dp))
+
+        Text(
+            text = "Usuário",
+            color = Color(0xFF7E8C54),
+            fontWeight = FontWeight.Normal,
+            fontFamily = playpenSansVariableFontWght,
+        )
         OutlinedTextField(
             value = username,
-            onValueChange = { username = it },
-            label = { Text("Usuário") },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            onValueChange = {username = it},
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(15.dp),
+            placeholder = { Text("Digite seu usuário") },
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Senha",
+            color = Color(0xFF7E8C54),
+            fontWeight = FontWeight.Normal,
+            fontFamily = playpenSansVariableFontWght,
+        )
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
-            label = { Text("Senha") },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+            onValueChange = {password = it},
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(15.dp),
+            placeholder = {Text("Digite sua senha")},
+            visualTransformation = PasswordVisualTransformation()
         )
 
         Button(
@@ -68,11 +129,18 @@ fun LoginScreen(navController: NavController) {
                 navController.navigate("home")
             },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A4A2E))
+                .width(150.dp)
+                .padding(top = 60.dp)
+                .align(Alignment.CenterHorizontally),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001))
         ) {
-            Text("Login", color = Color.White)
+            Text(
+                text = "Login",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght,
+                color = Color(0xFFF8F8F8)
+            )
         }
     }
 }
