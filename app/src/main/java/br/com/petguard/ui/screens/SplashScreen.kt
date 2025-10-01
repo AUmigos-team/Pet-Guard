@@ -36,23 +36,23 @@ fun SplashScreen(navController: NavController) {
             .background(Color(0xFF7E8C54)),
         contentAlignment = Alignment.Center
     ) {
-            Text(
-                text = "GUARD",
-                fontSize = 55.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = ralewayDots,
-                color = Color.White
-            )
+        Text(
+            text = "GUARD",
+            fontSize = 55.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = ralewayDots,
+            color = Color.White
+        )
 
-            Text(
-                text = "Pet",
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = windSong,
-                color = Color.White,
-                modifier = Modifier
-                    .offset(x = (70).dp, y = 25.dp)
-            )
+        Text(
+            text = "Pet",
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = windSong,
+            color = Color.White,
+            modifier = Modifier
+                .offset(x = (70).dp, y = 25.dp)
+        )
 
     }
 
