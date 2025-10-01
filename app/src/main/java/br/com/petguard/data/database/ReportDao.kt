@@ -13,10 +13,10 @@ interface ReportDao {
     @Query("SELECT * FROM report WHERE id = :id")
     suspend fun getById(id: Long): Report?
 
-    @Query("SELECT * FROM report WHERE status = 'PENDENTE'")
+    @Query("SELECT * FROM report WHERE status = 'PENDING'")
     fun getPendingReports(): Flow<List<Report>>
 
-    @Query("SELECT * FROM report WHERE status != 'PENDENTE' ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM report WHERE status != 'PENDING' ORDER BY updatedAt DESC")
     fun getCompletedReports(): Flow<List<Report>>
 
     @Query("UPDATE report SET status = 'COMPLETED' WHERE id = :id")
