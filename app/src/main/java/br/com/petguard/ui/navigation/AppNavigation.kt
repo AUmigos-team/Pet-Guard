@@ -9,6 +9,9 @@ import br.com.petguard.data.repository.ReportRepository
 import br.com.petguard.ui.screens.HomeScreen
 import br.com.petguard.ui.screens.LoginScreen
 import br.com.petguard.ui.screens.NewInspectionScreen
+import br.com.petguard.ui.screens.PendingReportsScreen
+import br.com.petguard.ui.screens.ReportsScreen
+import br.com.petguard.ui.screens.SettingsScreen
 import br.com.petguard.ui.screens.SplashScreen
 
 @Composable

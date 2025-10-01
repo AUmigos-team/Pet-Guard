@@ -14,14 +14,15 @@ import androidx.navigation.NavController
 @Composable
 fun SplashScreen(navController: NavController) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "GUARD Pet",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF8C9E70)
+            color = Color(0xFF7E8C54)
         )
     }
 

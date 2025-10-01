@@ -1,11 +1,13 @@
 package br.com.petguard.data.database
 
+import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface ReportDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveReport(report: Report): Long
