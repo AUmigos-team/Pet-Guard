@@ -1,26 +1,10 @@
 package br.com.petguard.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import br.com.petguard.data.repository.ReportRepository
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,13 +12,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.petguard.data.database.Report
+import br.com.petguard.ui.components.GuardPetLogo
 import kotlinx.coroutines.launch
 
 @Composable
 fun NewInspectionScreen(navController: NavController, reportRepository: ReportRepository) {
     var address by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-
     val scope = rememberCoroutineScope()
 
     Column(
@@ -44,52 +28,50 @@ fun NewInspectionScreen(navController: NavController, reportRepository: ReportRe
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        Text(
-            text = "GUARD Pet",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF8C9E70)
+        GuardPetLogo(
+            modifier = Modifier.fillMaxWidth(),
+            fontSizeMain = 40,
+            fontSizeSub = 28,
+            subtitleSize = 14
         )
-        Text(
-            text = "Ajude a proteger os animais",
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+
+        Spacer(Modifier.height(24.dp))
 
         Text(
             text = "Nova Fiscalização",
             fontSize = 24.sp,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            color = Color(0xFF452001),
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        Text("Endereço:", fontWeight = FontWeight.Bold)
+        Text("Endereço:", fontWeight = FontWeight.Bold, color = Color(0xFF452001))
         OutlinedTextField(
             value = address,
             onValueChange = { address = it },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         )
 
-        // Mapa simulado (vai ser implementado depois)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
                 .padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFEFEFEF))
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Mapa de localização (simulado)")
-                Text("Av. Francisco Vaz Filho, 251", fontSize = 14.sp)
+                Text("Mapa de localização (simulado)", color = Color.DarkGray)
+                Text("Av. Francisco Vaz Filho, 251", fontSize = 14.sp, color = Color.Gray)
             }
         }
 
-        Text("Evidências:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 16.dp))
+        Text("Evidências:", fontWeight = FontWeight.Bold, color = Color(0xFF452001), modifier = Modifier.padding(top = 16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -98,21 +80,23 @@ fun NewInspectionScreen(navController: NavController, reportRepository: ReportRe
                 onClick = { /* Capturar foto */ },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A4A2E))
             ) {
-                Text("Foto")
+                Text("Foto", color = Color.White)
             }
             Button(
                 onClick = { /* Gravar vídeo */ },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A4A2E))
             ) {
-                Text("Vídeo")
+                Text("Vídeo", color = Color.White)
             }
         }
 
-        Text("Descrição:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 16.dp))
+        Text("Descrição:", fontWeight = FontWeight.Bold, color = Color(0xFF452001), modifier = Modifier.padding(top = 16.dp))
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
             maxLines = 5
         )
 
@@ -125,7 +109,7 @@ fun NewInspectionScreen(navController: NavController, reportRepository: ReportRe
                 )
                 scope.launch {
                     reportRepository.saveReport(report)
-                    navController.popBackStack()
+                    navController.popBackStack() // volta para Home
                 }
             },
             modifier = Modifier
