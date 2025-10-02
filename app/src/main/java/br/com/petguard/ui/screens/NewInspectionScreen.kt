@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.petguard.data.database.Report
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @Composable
 fun NewInspectionScreen(navController: NavController, reportRepository: ReportRepository) {
@@ -121,7 +122,8 @@ fun NewInspectionScreen(navController: NavController, reportRepository: ReportRe
                 val report = Report(
                     address = address,
                     description = description,
-                    status = "PENDING"
+                    status = "PENDING",
+                    createdAt = LocalDateTime.now()
                 )
                 scope.launch {
                     reportRepository.saveReport(report)
