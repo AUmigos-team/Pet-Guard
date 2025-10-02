@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,9 +39,11 @@ import androidx.navigation.NavController
 import br.com.petguard.R
 import br.com.petguard.data.database.Report
 import br.com.petguard.data.repository.ReportRepository
+import br.com.petguard.ui.components.GuardPetLogo
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
+
 
 @Composable
 fun PendingReportsScreen(navController: NavController, repository: ReportRepository) {
@@ -66,26 +67,14 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Box(
+        GuardPetLogo(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "GUARD",
-                fontSize = 55.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = ralewayDots,
-                color = Color(0xFF7E8C54)
-            )
-            Text(
-                text = "Pet",
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = windSong,
-                color = Color(0xFF7E8C54),
-                modifier = Modifier.offset(x = 70.dp, y = 25.dp)
-            )
-        }
+            fontSizeMain = 40,
+            fontSizeSub = 28,
+            subtitleSize = 14
+        )
+
+        Spacer(Modifier.height(24.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -168,7 +157,7 @@ fun ReportCard(
                 )
 
                 AnimatedVisibility(expanded) {
-                    Column {
+                    Column{
                         Spacer(Modifier.height(8.dp))
                         Text(text = "Mais informações da denúncia:\n" +
                                 "Descrição: ${report.description ?: "Sem descrição"}\n" +
