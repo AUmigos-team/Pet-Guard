@@ -19,6 +19,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders["MAPS_API_KEY"] =
+            (project.findProperty("MAPS_API_KEY") as? String)
+                ?: System.getenv("MAPS_API_KEY")
+                        ?: ""
     }
 
     buildTypes {
@@ -54,8 +59,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose.android)
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.maps.android:maps-compose:4.3.3")
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation("androidx.compose.material:material-icons-extended:1.7.2")
+    implementation("androidx.activity:activity-compose:1.7.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,7 +76,6 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-    // Room - dependencies
     val room_version = "2.8.0"
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
