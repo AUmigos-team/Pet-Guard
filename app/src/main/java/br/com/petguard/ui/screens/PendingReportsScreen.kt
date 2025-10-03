@@ -44,14 +44,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
+val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
 @Composable
 fun PendingReportsScreen(navController: NavController, repository: ReportRepository) {
     val scope = rememberCoroutineScope()
     var reports by remember { mutableStateOf<List<Report>>(emptyList()) }
-    val ralewayDots = FontFamily(Font(R.font.raleway_dots_regular))
-    val windSong = FontFamily(Font(R.font.windsong_regular))
-    val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
     LaunchedEffect(Unit) {
@@ -109,19 +107,18 @@ fun ReportCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-    val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE082)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFDE8A4)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
@@ -159,9 +156,11 @@ fun ReportCard(
                 AnimatedVisibility(expanded) {
                     Column{
                         Spacer(Modifier.height(8.dp))
-                        Text(text = "Mais informações da denúncia:\n" +
-                                "Descrição: ${report.description ?: "Sem descrição"}\n" +
-                                "Data: ${report.createdAt?.format(dtf) ?: "Sem data"}",
+                        Text(text = """
+                                Mais informações da denúncia:
+                                Descrição: ${report.description ?: "Sem descrição"}
+                                Data: ${report.createdAt?.format(dtf) ?: "Sem data"}
+                            """.trimIndent(),
                             color = Color(0xFF7E8C54),
                             fontFamily = playpenSansVariableFontWght
                         )
