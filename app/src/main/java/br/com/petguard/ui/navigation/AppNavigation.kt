@@ -37,7 +37,7 @@ fun AppNavigation() {
 
     Scaffold(
         bottomBar = {
-            if (currentRoute !in listOf("splash", "login")) {
+            if (currentRoute !in listOf("splash", "login", "register")) {
                 BottomNavBar(navController = navController, items = bottomItems)
             }
         }
