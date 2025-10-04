@@ -53,6 +53,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.util.*
 
 sealed class MediaItem {
@@ -351,7 +352,7 @@ fun NewInspectionScreen(
 
         Button(
             onClick = {
-                val report = Report(address = address, description = description, status = "PENDING")
+                val report = Report(address = address, description = description, status = "PENDING", createdAt = LocalDateTime.now())
                 scope.launch {
                     reportRepository.saveReport(report)
                     navController.popBackStack()

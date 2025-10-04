@@ -49,7 +49,7 @@ fun AppNavigation() {
         ) {
             composable("splash") { SplashScreen(navController) }
             composable("login") { LoginScreen(navController) }
-            composable("home") { HomeScreen(navController) }
+            composable("home") { HomeScreen(navController, repository) }
             composable("new_inspection") { NewInspectionScreen(navController, repository) }
             composable("pending_reports") { PendingReportsScreen(navController, repository) }
             composable("reports") { ReportsScreen(navController, repository) }

@@ -6,6 +6,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,11 +19,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.petguard.R
+import br.com.petguard.data.repository.ReportRepository
 import br.com.petguard.ui.components.GuardPetLogo
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, reportRepository: ReportRepository) {
     val playpenSans = FontFamily(Font(R.font.playpensans_variablefont_wght))
+    val pendingReports by reportRepository.pendingReports.collectAsState(initial = emptyList())
+    val completedReports by reportRepository.completedReports.collectAsState(initial = emptyList())
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -124,7 +130,7 @@ fun HomeScreen(navController: NavController) {
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "12 denúncias\npendentes",
+                                    text = "${pendingReports.size} denúncias\npendentes",
                                     fontWeight = FontWeight.Light,
                                     fontFamily = playpenSans,
                                     color = Color(0xFFAF9733),
