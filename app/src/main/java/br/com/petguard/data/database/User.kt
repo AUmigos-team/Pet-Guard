@@ -12,6 +12,12 @@ data class User(
     @ColumnInfo(name = "name")
     val name: String,
 
+    @ColumnInfo(name = "matricula")
+    val registration: String,
+
+    @ColumnInfo(name = "cpf")
+    val cpf: String,
+
     @ColumnInfo(name = "password")
     val password: String,
 
