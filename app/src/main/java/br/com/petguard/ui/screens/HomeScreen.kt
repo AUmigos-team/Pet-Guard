@@ -164,7 +164,7 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "30 denúncias\nconcluídas",
+                                    text = "${completedReports.size} denúncias\nconcluídas",
                                     fontWeight = FontWeight.Light,
                                     fontFamily = playpenSans,
                                     textAlign = TextAlign.Center,
