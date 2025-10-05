@@ -12,7 +12,7 @@ data class User(
     @ColumnInfo(name = "name")
     val name: String,
 
-    @ColumnInfo(name = "matricula")
+    @ColumnInfo(name = "registration")
     val registration: String,
 
     @ColumnInfo(name = "cpf")
@@ -22,5 +22,5 @@ data class User(
     val password: String,
 
     @ColumnInfo(name = "logged")
-    val logged: Boolean = true
+    val logged: Boolean = false
 )

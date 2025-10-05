@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.petguard.R
 import br.com.petguard.data.database.AppDatabase
-import br.com.petguard.data.database.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,7 +24,7 @@ import android.widget.Toast
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
+    var registration by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -73,9 +72,14 @@ fun LoginScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Usuário") },
+            value = registration,
+            onValueChange = { registration = it },
+            label = { Text(
+                text = "Digite sua matrícula",
+                color = Color(0xFF7E8C54),
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght
+            ) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -85,7 +89,12 @@ fun LoginScreen(navController: NavController) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Senha") },
+            label = { Text(
+                text = "Digite sua senha",
+                color = Color(0xFF7E8C54),
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght
+            ) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
@@ -95,23 +104,58 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (username.isNotBlank() && password.isNotBlank()) {
+                if (registration.isNotBlank() && password.isNotBlank()) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        // Buscar usuário no banco local
-                        val user = userDao.getAll()
-                            .find { it.name == username && it.password == password }
+                        try {
+                            val userByRegistration = userDao.findByRegistration(registration)
 
-                        CoroutineScope(Dispatchers.Main).launch {
-                            if (user != null) {
-                                // Marcar usuário como logado
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    userDao.atualizar(user.copy(logged = true))
+                            CoroutineScope(Dispatchers.Main).launch {
+                                when {
+                                    userByRegistration == null -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Usuário não encontrado",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    userByRegistration.password != password -> {
+                                        Toast.makeText(
+                                            context,
+                                            "Senha incorreta",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    else -> {
+                                        // Marcar logado com ID garantido
+                                        launch(Dispatchers.IO) {
+                                            userDao.atualizar(
+                                                userByRegistration.copy(
+                                                    id = userByRegistration.id,
+                                                    logged = true
+                                                )
+                                            )
+                                        }
+
+                                        Toast.makeText(
+                                            context,
+                                            "Login realizado com sucesso",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        navController.navigate("home") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
                                 }
-                                navController.navigate("home") {
-                                    popUpTo("login") { inclusive = true }
-                                }
-                            } else {
-                                Toast.makeText(context, "Usuário ou senha incorretos", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            CoroutineScope(Dispatchers.Main).launch {
+                                Toast.makeText(
+                                    context,
+                                    "Erro ao fazer login: ${e.localizedMessage}",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         }
                     }

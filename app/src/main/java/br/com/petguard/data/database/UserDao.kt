@@ -19,7 +19,10 @@ interface UserDao {
 
     @Update
     suspend fun atualizar(user: User)
+
     @Query("SELECT * FROM user")
     suspend fun getAll(): List<User>
 
+    @Query("SELECT * FROM user WHERE registration = :registration LIMIT 1")
+    suspend fun findByRegistration(registration: String): User?
 }

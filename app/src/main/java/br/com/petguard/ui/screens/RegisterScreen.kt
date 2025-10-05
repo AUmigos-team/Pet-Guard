@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import android.widget.Toast
+import br.com.petguard.data.database.UserDao
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -77,7 +78,12 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Usuário") },
+            label = { Text(
+                text = "Digite seu nome",
+                color = Color(0xFF7E8C54),
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght
+            ) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -87,7 +93,12 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = registration,
             onValueChange = { registration = it },
-            label = { Text("Matrícula") },
+            label = { Text(
+                text = "Digite sua matrícula",
+                color = Color(0xFF7E8C54),
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght
+            ) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -97,7 +108,12 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = cpf,
             onValueChange = { cpf = it },
-            label = { Text("CPF") },
+            label = { Text(
+                text = "Digite seu CPF (apenas números)",
+                color = Color(0xFF7E8C54),
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght
+            ) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -107,7 +123,12 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Senha") },
+            label = { Text(
+                text = "Digite sua senha",
+                color = Color(0xFF7E8C54),
+                fontWeight = FontWeight.Normal,
+                fontFamily = playpenSansVariableFontWght
+            ) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
@@ -117,18 +138,25 @@ fun RegisterScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (username.isNotBlank() && password.isNotBlank()) {
+                if (username.isNotBlank() && registration.isNotBlank() && cpf.isNotBlank() && password.isNotBlank()) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        // Verifica se já existe usuário com mesmo nome
-                        val existingUser = userDao.getAll().find { it.name == username }
+                        // Verifica se já existe usuário com mesma matricula ou cpf
+                        val existingRegistration = userDao.findByRegistration(registration)
+                        val existingCpf = userDao.getAll().find { it.cpf == cpf }
 
                         CoroutineScope(Dispatchers.Main).launch {
-                            if (existingUser != null) {
+                            if (existingRegistration != null || existingCpf != null) {
                                 Toast.makeText(context, "Usuário já existe", Toast.LENGTH_SHORT).show()
                             } else {
                                 // Salvar novo usuário
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    userDao.saveUser(User(name = username, registration = registration, cpf = cpf, password = password, logged = false))
+                                    userDao.saveUser(User(
+                                        name = username,
+                                        registration = registration,
+                                        cpf = cpf,
+                                        password = password,
+                                        logged = false)
+                                    )
                                 }
                                 Toast.makeText(context, "Cadastro realizado com sucesso", Toast.LENGTH_SHORT).show()
                                 // Voltar para login
