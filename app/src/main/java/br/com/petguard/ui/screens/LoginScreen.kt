@@ -60,7 +60,17 @@ fun LoginScreen(navController: NavController) {
             color = Color(0xFF7E8C54)
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "Realize seu login",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = playpenSansVariableFontWght,
+            color = Color(0xFF452001)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedTextField(
             value = username,
