@@ -26,6 +26,8 @@ import android.widget.Toast
 @Composable
 fun RegisterScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
+    var registration by remember { mutableStateOf("") }
+    var cpf by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -73,6 +75,26 @@ fun RegisterScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
+            value = registration,
+            onValueChange = { registration = it },
+            label = { Text("Matrícula") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = cpf,
+            onValueChange = { cpf = it },
+            label = { Text("CPF") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Senha") },
@@ -96,7 +118,7 @@ fun RegisterScreen(navController: NavController) {
                             } else {
                                 // Salvar novo usuário
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    userDao.saveUser(User(name = username, password = password, logged = false))
+                                    userDao.saveUser(User(name = username, registration = registration, cpf = cpf, password = password, logged = false))
                                 }
                                 Toast.makeText(context, "Cadastro realizado com sucesso", Toast.LENGTH_SHORT).show()
                                 // Voltar para login
@@ -111,11 +133,15 @@ fun RegisterScreen(navController: NavController) {
                 }
             },
             modifier = Modifier
-                .width(150.dp)
-                .height(50.dp),
+                .wrapContentWidth()
+                .wrapContentHeight(),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001))
         ) {
-            Text("Cadastrar", fontSize = 20.sp, color = Color.White)
+            TextButton(
+                onClick = {navController.navigate("login")}
+            ){
+                Text("Cadastrar", fontSize = 20.sp, color = Color.White)
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
