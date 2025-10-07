@@ -19,7 +19,7 @@ data class User(
     val cpf: String,
 
     @ColumnInfo(name = "password")
-    val password: String,
+    val password: String = "",
 
     @ColumnInfo(name = "logged")
     val logged: Boolean = false

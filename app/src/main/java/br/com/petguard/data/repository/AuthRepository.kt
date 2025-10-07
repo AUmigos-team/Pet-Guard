@@ -64,4 +64,28 @@ class AuthRepository(
                 }
             }
     }
+    fun getCurrentUserData(
+        onSuccess: (Map<String, Any>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val user = auth.currentUser
+        if (user == null) {
+            onError("Usuário não autenticado.")
+            return
+        }
+
+        db.collection("users").document(user.uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    onSuccess(document.data ?: emptyMap())
+                } else {
+                    onError("Dados do usuário não encontrados.")
+                }
+            }
+            .addOnFailureListener { e ->
+                onError("Erro ao buscar dados: ${e.message}")
+            }
+    }
+
 }
