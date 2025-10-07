@@ -12,13 +12,13 @@ interface UserDao {
     suspend fun saveUser(user: User)
 
     @Query("SELECT * FROM user WHERE logged = 1 LIMIT 1")
-    suspend fun getUsuarioLogado(): User?
+    suspend fun getLoggedUser(): User?
 
     @Query("DELETE FROM user")
     suspend fun cleanAll()
 
     @Update
-    suspend fun atualizar(user: User)
+    suspend fun update(user: User)
 
     @Query("SELECT * FROM user")
     suspend fun getAll(): List<User>

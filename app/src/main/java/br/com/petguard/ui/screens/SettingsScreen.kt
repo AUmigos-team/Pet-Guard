@@ -35,7 +35,7 @@ fun SettingsScreen(navController: NavController) {
 
     // Buscar usuário logado quando a tela é aberta
     LaunchedEffect(Unit) {
-        loggedUser = userDao.getUsuarioLogado()
+        loggedUser = userDao.getLoggedUser()
     }
 
     Column(
@@ -159,7 +159,7 @@ fun SettingsScreen(navController: NavController) {
             onClick = {
                 scope.launch {
                     loggedUser?.let {
-                        userDao.atualizar(it.copy(logged = false))
+                        userDao.update(it.copy(logged = false))
                     }
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }

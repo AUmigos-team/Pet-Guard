@@ -1,9 +1,25 @@
 package br.com.petguard.ui.screens
 
-import androidx.compose.foundation.layout.*
+import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,27 +32,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.petguard.R
-import br.com.petguard.data.database.AppDatabase
-import br.com.petguard.data.database.User
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import android.widget.Toast
-import br.com.petguard.data.database.UserDao
+import br.com.petguard.data.repository.AuthRepository
+import br.com.petguard.ui.components.GuardPetLogo
 
 @Composable
 fun RegisterScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
-    var registration by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var cpf by remember { mutableStateOf("") }
+    var registration by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-    val userDao = AppDatabase.getDatabase(context).userDao()
-
-    val ralewayDots = FontFamily(Font(R.font.raleway_dots_regular))
-    val windSong = FontFamily(Font(R.font.windsong_regular))
-    val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
+    val authRepo = AuthRepository()
+    val fontFamily = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
     Column(
         modifier = Modifier
@@ -47,20 +55,11 @@ fun RegisterScreen(navController: NavController) {
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        Text(
-            text = "GUARD",
-            fontSize = 55.sp,
-            fontWeight = FontWeight.Normal,
-            fontFamily = ralewayDots,
-            color = Color(0xFF7E8C54)
-        )
-
-        Text(
-            text = "Pet",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Normal,
-            fontFamily = windSong,
-            color = Color(0xFF7E8C54)
+        GuardPetLogo(
+            modifier = Modifier.fillMaxWidth(),
+            fontSizeMain = 40,
+            fontSizeSub = 28,
+            subtitleSize = 14
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -69,21 +68,16 @@ fun RegisterScreen(navController: NavController) {
             text = "Realize seu cadastro",
             fontSize = 20.sp,
             fontWeight = FontWeight.Normal,
-            fontFamily = playpenSansVariableFontWght,
+            fontFamily = fontFamily,
             color = Color(0xFF452001)
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text(
-                text = "Digite seu nome",
-                color = Color(0xFF7E8C54),
-                fontWeight = FontWeight.Normal,
-                fontFamily = playpenSansVariableFontWght
-            ) },
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Digite seu nome", color = Color(0xFF7E8C54)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -93,12 +87,7 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = registration,
             onValueChange = { registration = it },
-            label = { Text(
-                text = "Digite sua matrícula",
-                color = Color(0xFF7E8C54),
-                fontWeight = FontWeight.Normal,
-                fontFamily = playpenSansVariableFontWght
-            ) },
+            label = { Text("Digite sua matrícula", color = Color(0xFF7E8C54)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -108,12 +97,7 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = cpf,
             onValueChange = { cpf = it },
-            label = { Text(
-                text = "Digite seu CPF (apenas números)",
-                color = Color(0xFF7E8C54),
-                fontWeight = FontWeight.Normal,
-                fontFamily = playpenSansVariableFontWght
-            ) },
+            label = { Text("Digite seu CPF (apenas números)", color = Color(0xFF7E8C54)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         )
@@ -123,12 +107,7 @@ fun RegisterScreen(navController: NavController) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text(
-                text = "Digite sua senha",
-                color = Color(0xFF7E8C54),
-                fontWeight = FontWeight.Normal,
-                fontFamily = playpenSansVariableFontWght
-            ) },
+            label = { Text("Digite sua senha", color = Color(0xFF7E8C54)) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
@@ -138,55 +117,39 @@ fun RegisterScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (username.isNotBlank() && registration.isNotBlank() && cpf.isNotBlank() && password.isNotBlank()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        // Verifica se já existe usuário com mesma matricula ou cpf
-                        val existingRegistration = userDao.findByRegistration(registration)
-                        val existingCpf = userDao.getAll().find { it.cpf == cpf }
-
-                        CoroutineScope(Dispatchers.Main).launch {
-                            if (existingRegistration != null || existingCpf != null) {
-                                Toast.makeText(context, "Usuário já existe", Toast.LENGTH_SHORT).show()
-                            } else {
-                                // Salvar novo usuário
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    userDao.saveUser(User(
-                                        name = username,
-                                        registration = registration,
-                                        cpf = cpf,
-                                        password = password,
-                                        logged = false)
-                                    )
-                                }
-                                Toast.makeText(context, "Cadastro realizado com sucesso", Toast.LENGTH_SHORT).show()
-                                // Voltar para login
-                                navController.navigate("login") {
-                                    popUpTo("register") { inclusive = true }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Toast.makeText(context, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
+                if (name.isBlank() || registration.isBlank() || cpf.isBlank() || password.isBlank()) {
+                    Toast.makeText(context, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show()
+                    return@Button
                 }
+
+                authRepo.registerUser(
+                    name = name,
+                    registration = registration,
+                    cpf = cpf,
+                    email = "$registration@petguard.com.br",
+                    password = password,
+                    onSuccess = {
+                        Toast.makeText(context, "Usuário cadastrado com sucesso!", Toast.LENGTH_SHORT).show()
+                        navController.navigate("login") {
+                            popUpTo("register") { inclusive = true }
+                        }
+                    },
+                    onError = { msg : String ->
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
+                )
             },
             modifier = Modifier
                 .wrapContentWidth()
-                .wrapContentHeight(),
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001))
         ) {
-            TextButton(
-                onClick = {navController.navigate("login")}
-            ){
-                Text("Cadastrar", fontSize = 20.sp, color = Color.White)
-            }
+            Text("Cadastrar", fontSize = 20.sp, color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        TextButton(
-            onClick = { navController.navigate("login") }
-        ) {
+        TextButton(onClick = { navController.navigate("login") }) {
             Text("Já tem conta? Faça login")
         }
     }
