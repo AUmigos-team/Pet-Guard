@@ -54,7 +54,7 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color(0xFF7E8C54))
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(60.dp))
 
             GuardPetLogo(

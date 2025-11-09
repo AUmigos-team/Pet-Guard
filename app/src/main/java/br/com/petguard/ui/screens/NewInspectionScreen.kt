@@ -57,6 +57,8 @@ import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 sealed class MediaItem {
     data class Photo(val uri: Uri, val bitmap: Bitmap) : MediaItem()
@@ -232,6 +234,7 @@ fun NewInspectionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
