@@ -125,11 +125,19 @@ fun PendingReportCard(
 
     val gson = Gson()
     val photoList: List<String> = report.photoPath?.let {
-        try { gson.fromJson(it, Array<String>::class.java).toList() } catch (e: Exception) { emptyList() }
+        try {
+            gson.fromJson(it, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     } ?: emptyList()
 
     val videoList: List<String> = report.videoPath?.let {
-        try { gson.fromJson(it, Array<String>::class.java).toList() } catch (e: Exception) { emptyList() }
+        try {
+            gson.fromJson(it, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     } ?: emptyList()
 
     Card(

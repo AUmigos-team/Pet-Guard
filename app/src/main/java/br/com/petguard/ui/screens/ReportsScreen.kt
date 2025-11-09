@@ -40,6 +40,24 @@ import br.com.petguard.ui.components.GuardPetLogo
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
+import android.content.Context
+import android.net.Uri
+import android.widget.VideoView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import coil.compose.rememberAsyncImagePainter
+import com.google.gson.Gson
 
 @Composable
 fun ReportsScreen(navController: NavController, repository: ReportRepository) {
@@ -103,6 +121,28 @@ fun CompletedReportCard(
     dtf: DateTimeFormatter
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    var mediaDialogOpen by remember { mutableStateOf(false) }
+    var selectedMediaUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedIsVideo by remember { mutableStateOf(false) }
+
+    val gson = Gson()
+    val photoList: List<String> = report.photoPath?.let {
+        try {
+            gson.fromJson(it, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    } ?: emptyList()
+
+    val videoList: List<String> = report.videoPath?.let {
+        try {
+            gson.fromJson(it, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    } ?: emptyList()
 
     Card(
         modifier = Modifier
@@ -172,6 +212,70 @@ fun CompletedReportCard(
                             fontSize = 14.sp
                         )
 
+                        if (photoList.isNotEmpty() || videoList.isNotEmpty()) {
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = "Mídias anexadas:",
+                                color = Color(0xFF7E8C54),
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = playpenSansVariableFontWght,
+                                fontSize = 14.sp
+                            )
+                            Spacer(Modifier.height(8.dp))
+
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(photoList) { path ->
+                                    val imageUri = Uri.parse(path)
+                                    Image(
+                                        painter = rememberAsyncImagePainter(imageUri),
+                                        contentDescription = "Foto anexada",
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .clickable {
+                                                selectedMediaUri = imageUri
+                                                selectedIsVideo = false
+                                                mediaDialogOpen = true
+                                            },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+                                items(videoList) { path ->
+                                    val videoUri = Uri.parse(path)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color.Black)
+                                            .clickable {
+                                                selectedMediaUri = videoUri
+                                                selectedIsVideo = true
+                                                mediaDialogOpen = true
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.PlayArrow,
+                                            contentDescription = "Ver vídeo",
+                                            tint = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        if (mediaDialogOpen && selectedMediaUri != null) {
+                            MediaPreviewDialog(
+                                uri = selectedMediaUri!!,
+                                isVideo = selectedIsVideo,
+                                onDismiss = {
+                                    mediaDialogOpen = false
+                                    selectedMediaUri = null
+                                }
+                            )
+                        }
+
 //                        if (report.latitude != null && report.longitude != null) {
 //                            Spacer(Modifier.height(4.dp))
 //                            Text(
@@ -207,3 +311,4 @@ fun CompletedReportCard(
         }
     }
 }
+
