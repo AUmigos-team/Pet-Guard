@@ -49,6 +49,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButton
 
 val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
@@ -69,6 +71,15 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color(0xFF7E8C54))
+            }
+        }
+
         GuardPetLogo(
             modifier = Modifier.fillMaxWidth(),
             fontSizeMain = 40,

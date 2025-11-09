@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Videocam
@@ -235,7 +236,21 @@ fun NewInspectionScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        GuardPetLogo(modifier = Modifier.fillMaxWidth(), fontSizeMain = 40, fontSizeSub = 28, subtitleSize = 14)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color(0xFF7E8C54))
+            }
+        }
+
+        GuardPetLogo(
+            modifier = Modifier.fillMaxWidth(),
+            fontSizeMain = 40,
+            fontSizeSub = 28,
+            subtitleSize = 14
+        )
 
         Spacer(Modifier.height(24.dp))
 
