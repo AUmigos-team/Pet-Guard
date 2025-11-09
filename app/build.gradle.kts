@@ -72,6 +72,7 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-auth:9.0.0")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.androidx.constraintlayout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

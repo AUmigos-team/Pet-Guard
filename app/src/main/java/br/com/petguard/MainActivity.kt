@@ -10,6 +10,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import br.com.petguard.ui.navigation.AppNavigation
 import br.com.petguard.ui.theme.PetGuardTheme
+import br.com.petguard.ui.theme.ThemeManager
+import br.com.petguard.ui.theme.ThemePreference
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
@@ -17,8 +19,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
+        ThemeManager.isDarkTheme.value = ThemePreference.isDarkMode(this)
         setContent {
-            PetGuardTheme {
+            val darkTheme = ThemeManager.isDarkTheme.value
+            PetGuardTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

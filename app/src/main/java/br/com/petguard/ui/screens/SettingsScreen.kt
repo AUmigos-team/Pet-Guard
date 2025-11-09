@@ -44,6 +44,8 @@ import br.com.petguard.data.database.AppDatabase
 import br.com.petguard.data.database.User
 import br.com.petguard.data.repository.AuthRepository
 import br.com.petguard.ui.components.GuardPetLogo
+import br.com.petguard.ui.theme.ThemeManager
+import br.com.petguard.ui.theme.ThemePreference
 import kotlinx.coroutines.launch
 
 @Composable
@@ -55,7 +57,7 @@ fun SettingsScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     var notificationsEnabled by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(false) }
+    var darkModeEnabled by remember { mutableStateOf(ThemeManager.isDarkTheme.value) }
 
     var loggedUser by remember { mutableStateOf<User?>(null) }
 
@@ -176,11 +178,15 @@ fun SettingsScreen(navController: NavController) {
                 text = "Modo escuro",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
-                color = Color.Gray
+                color = if (darkModeEnabled) Color(0xFF7E8C54) else Color.Gray
             )
             Switch(
                 checked = darkModeEnabled,
-                onCheckedChange = { darkModeEnabled = it },
+                onCheckedChange = {
+                    darkModeEnabled = it
+                    ThemeManager.toggleTheme(it)
+                    ThemePreference.setDarkMode(context, it)
+                },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
                     checkedTrackColor = Color(0xFF7E8C54),
