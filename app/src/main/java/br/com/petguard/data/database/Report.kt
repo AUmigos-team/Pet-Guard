@@ -35,5 +35,11 @@ data class Report (
     val createdAt: LocalDateTime? = null,
 
     @ColumnInfo(name = "updatedAt")
-    val updatedAt: LocalDateTime? = null
+    val updatedAt: LocalDateTime? = null,
+
+    @ColumnInfo(name = "createdBy")
+    val createdBy: String? = null,
+
+    @ColumnInfo(name = "completedBy")
+    val completedBy: String? = null
 )

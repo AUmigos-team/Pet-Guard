@@ -59,6 +59,7 @@ import java.time.LocalDateTime
 import java.util.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import br.com.petguard.data.repository.AuthRepository
 
 sealed class MediaItem {
     data class Photo(val uri: Uri, val bitmap: Bitmap) : MediaItem()
@@ -74,6 +75,9 @@ fun NewInspectionScreen(
     val context = LocalContext.current
     val resolver = context.contentResolver
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+    val authRepo = remember { AuthRepository() }
+    var currentUserName by remember { mutableStateOf("") }
 
     var address by remember { mutableStateOf("Buscando endereço...") }
     var description by remember { mutableStateOf("") }
@@ -198,6 +202,15 @@ fun NewInspectionScreen(
     }
 
     LaunchedEffect(Unit) {
+        authRepo.getCurrentUserData(
+            onSuccess = { data ->
+                currentUserName = data["name"] as? String ?: "Usuário"
+            },
+            onError = {
+                currentUserName = "Usuário"
+            }
+        )
+
         val hasLocation = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -380,7 +393,8 @@ fun NewInspectionScreen(
                     photoPath = Gson().toJson(photoList),
                     videoPath = Gson().toJson(videoList),
                     status = "PENDING",
-                    createdAt = LocalDateTime.now()
+                    createdAt = LocalDateTime.now(),
+                    createdBy = currentUserName
                 )
                 scope.launch {
                     reportRepository.saveReport(report)

@@ -5,6 +5,7 @@ import br.com.petguard.data.database.Report
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 
 class ReportRepository(private val appDatabase: AppDatabase) {
     val pendingReports: Flow<List<Report>> = appDatabase.reportDao().getPendingReports()
@@ -16,9 +17,17 @@ class ReportRepository(private val appDatabase: AppDatabase) {
         }
     }
 
-    suspend fun markAsCompleted(id: Long) {
+    suspend fun markAsCompleted(id: Long, completedBy: String) {
         withContext(Dispatchers.IO) {
-            appDatabase.reportDao().markAsCompleted(id)
+            val report = appDatabase.reportDao().getById(id)
+            report?.let {
+                val updatedReport = it.copy(
+                    status = "COMPLETED",
+                    updatedAt = LocalDateTime.now(),
+                    completedBy = completedBy
+                )
+                appDatabase.reportDao().update(updatedReport)
+            }
         }
     }
 

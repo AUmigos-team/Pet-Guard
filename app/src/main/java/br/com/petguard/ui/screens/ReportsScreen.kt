@@ -190,7 +190,31 @@ fun CompletedReportCard(
                     color = Color(0xFF7E8C54),
                     fontFamily = playpenSansVariableFontWght
                 )
+
+                if (!report.createdBy.isNullOrEmpty()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "Criado por: ${report.createdBy}",
+                        color = Color(0xFF7E8C54),
+                        fontSize = 12.sp,
+                        fontFamily = playpenSansVariableFontWght,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+
+                if (!report.completedBy.isNullOrEmpty()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "Concluído por: ${report.completedBy}",
+                        color = Color(0xFF7E8C54),
+                        fontSize = 12.sp,
+                        fontFamily = playpenSansVariableFontWght,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+
                 Spacer(Modifier.height(4.dp))
+
                 Text(
                     text = report.address ?: "Endereço não informado",
                     fontSize = 14.sp,
@@ -217,6 +241,8 @@ fun CompletedReportCard(
                                 Status: ${report.status}
                                 Criado em: ${report.createdAt?.format(dtf) ?: "Sem data"}
                                 Atualizado em: ${report.updatedAt?.format(dtf) ?: "Sem data"}
+                                Criado por: ${report.createdBy ?: "Não informado"}
+                                ${if (!report.completedBy.isNullOrEmpty()) "Concluído por: ${report.completedBy}" else ""}
                             """.trimIndent(),
                             color = Color(0xFF7E8C54),
                             fontFamily = playpenSansVariableFontWght,

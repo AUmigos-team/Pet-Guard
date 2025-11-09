@@ -48,9 +48,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.rememberAsyncImagePainter
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.IconButton
+import br.com.petguard.data.repository.AuthRepository
 
 val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
@@ -128,6 +128,8 @@ fun PendingReportCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+    val authRepo = remember { AuthRepository() }
+    var currentUserName by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     var mediaDialogOpen by remember { mutableStateOf(false) }
@@ -150,6 +152,17 @@ fun PendingReportCard(
             emptyList()
         }
     } ?: emptyList()
+
+    LaunchedEffect(Unit) {
+        authRepo.getCurrentUserData(
+            onSuccess = { data ->
+                currentUserName = data["name"] as? String ?: "Usuário"
+            },
+            onError = {
+                currentUserName = "Usuário"
+            }
+        )
+    }
 
     Card(
         modifier = Modifier
@@ -178,6 +191,17 @@ fun PendingReportCard(
                 Spacer(Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
+                    if (!report.createdBy.isNullOrEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Criado por: ${report.createdBy}",
+                            color = Color(0xFF7E8C54),
+                            fontSize = 12.sp,
+                            fontFamily = playpenSansVariableFontWght,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
+                    
                     Text(
                         text = report.address ?: "Endereço não informado",
                         color = Color(0xFF7E8C54),
@@ -284,7 +308,7 @@ fun PendingReportCard(
                                 Button(
                                     onClick = {
                                         scope.launch {
-                                            repository.markAsCompleted(report.id)
+                                            repository.markAsCompleted(report.id, currentUserName)
                                         }
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E8C54)),
