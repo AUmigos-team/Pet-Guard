@@ -51,6 +51,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.gson.Gson
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -86,6 +87,9 @@ fun NewInspectionScreen(
     val mediaItems = remember { mutableStateListOf<MediaItem>() }
     var pendingPhotoUri by remember { mutableStateOf<Uri?>(null) }
     var pendingVideoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val photoList = mediaItems.filterIsInstance<MediaItem.Photo>().map { it.uri.toString() }
+    val videoList = mediaItems.filterIsInstance<MediaItem.Video>().map { it.uri.toString() }
 
     fun createImageOutputUri(): Uri? {
         val filename = "petguard_photo_${System.currentTimeMillis()}.jpg"
@@ -352,7 +356,14 @@ fun NewInspectionScreen(
 
         Button(
             onClick = {
-                val report = Report(address = address, description = description, status = "PENDING", createdAt = LocalDateTime.now())
+                val report = Report(
+                    address = address,
+                    description = description,
+                    photoPath = Gson().toJson(photoList),
+                    videoPath = Gson().toJson(videoList),
+                    status = "PENDING",
+                    createdAt = LocalDateTime.now()
+                )
                 scope.launch {
                     reportRepository.saveReport(report)
                     navController.popBackStack()

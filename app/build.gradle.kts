@@ -72,6 +72,7 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-auth:9.0.0")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.androidx.constraintlayout)
 
     testImplementation(libs.junit)
@@ -81,6 +82,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 

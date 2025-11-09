@@ -1,7 +1,11 @@
 package br.com.petguard.ui.screens
 
+import android.content.Context
+import android.net.Uri
+import android.widget.VideoView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,7 +35,20 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import coil.compose.rememberAsyncImagePainter
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
+import androidx.compose.foundation.lazy.itemsIndexed
 
 val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
@@ -82,7 +99,8 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
                     index = index + 1,
                     report = report,
                     repository = repository,
-                    scope = scope
+                    scope = scope,
+                    context = LocalContext.current
                 )
             }
         }
@@ -94,10 +112,25 @@ fun PendingReportCard(
     index: Int,
     report: Report,
     repository: ReportRepository,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    context: Context
 ) {
     var expanded by remember { mutableStateOf(false) }
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+
+    val context = LocalContext.current
+    var mediaDialogOpen by remember { mutableStateOf(false) }
+    var selectedMediaUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedIsVideo by remember { mutableStateOf(false) }
+
+    val gson = Gson()
+    val photoList: List<String> = report.photoPath?.let {
+        try { gson.fromJson(it, Array<String>::class.java).toList() } catch (e: Exception) { emptyList() }
+    } ?: emptyList()
+
+    val videoList: List<String> = report.videoPath?.let {
+        try { gson.fromJson(it, Array<String>::class.java).toList() } catch (e: Exception) { emptyList() }
+    } ?: emptyList()
 
     Card(
         modifier = Modifier
@@ -157,6 +190,74 @@ fun PendingReportCard(
 
                             Spacer(Modifier.height(8.dp))
 
+
+                            if (photoList.isNotEmpty() || videoList.isNotEmpty()) {
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    text = "Mídias anexadas:",
+                                    color = Color(0xFF7E8C54),
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = playpenSansVariableFontWght
+                                )
+
+                                Spacer(Modifier.height(8.dp))
+
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    itemsIndexed(photoList) { _, path ->
+                                        val imageUri = Uri.parse(path)
+                                        Image(
+                                            painter = rememberAsyncImagePainter(imageUri),
+                                            contentDescription = "Foto anexada",
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .clickable {
+                                                    selectedMediaUri = imageUri
+                                                    selectedIsVideo = false
+                                                    mediaDialogOpen = true
+                                                },
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+
+                                    itemsIndexed(videoList) { _, path ->
+                                        val videoUri = Uri.parse(path)
+                                        Box(
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(Color.Black)
+                                                .clickable {
+                                                    selectedMediaUri = videoUri
+                                                    selectedIsVideo = true
+                                                    mediaDialogOpen = true
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.PlayArrow,
+                                                contentDescription = "Ver vídeo",
+                                                tint = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (mediaDialogOpen && selectedMediaUri != null) {
+                                    MediaPreviewDialog(
+                                        uri = selectedMediaUri!!,
+                                        isVideo = selectedIsVideo,
+                                        onDismiss = {
+                                            mediaDialogOpen = false
+                                            selectedMediaUri = null
+                                            selectedIsVideo = false
+                                        }
+                                    )
+                                }
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -192,3 +293,45 @@ fun PendingReportCard(
         }
     }
 }
+
+@Composable
+fun MediaPreviewDialog(
+    uri: Uri,
+    isVideo: Boolean,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {},
+        text = {
+            if (isVideo) {
+                AndroidView(
+                    factory = { ctx ->
+                        VideoView(ctx).apply {
+                            setVideoURI(uri)
+                            setOnPreparedListener { mp ->
+                                mp.isLooping = true
+                                start()
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(360.dp)
+                )
+            } else {
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(360.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
