@@ -60,6 +60,7 @@ import java.util.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import br.com.petguard.data.repository.AuthRepository
+import androidx.navigation.NavController
 
 sealed class MediaItem {
     data class Photo(val uri: Uri, val bitmap: Bitmap) : MediaItem()
@@ -69,8 +70,9 @@ sealed class MediaItem {
 @SuppressLint("MissingPermission")
 @Composable
 fun NewInspectionScreen(
-    navController: androidx.navigation.NavController,
-    reportRepository: ReportRepository
+    navController: NavController,
+    reportRepository: ReportRepository,
+    reportId: Long = 0L
 ) {
     val context = LocalContext.current
     val resolver = context.contentResolver
@@ -82,6 +84,8 @@ fun NewInspectionScreen(
     var address by remember { mutableStateOf("Buscando endereço...") }
     var description by remember { mutableStateOf("") }
     var currentLocation by remember { mutableStateOf(LatLng(-20.5386, -47.4004)) }
+
+    var existingReport by remember { mutableStateOf<Report?>(null) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(currentLocation, 16f)
@@ -200,6 +204,35 @@ fun NewInspectionScreen(
             permissionLauncher.launch(perms.toTypedArray())
         }
     }
+
+    LaunchedEffect(reportId) {
+        if (reportId != 0L) {
+            val report = reportRepository.getReportById(reportId)
+            existingReport = report
+
+            report?.let {
+                address = it.address ?: ""
+                description = it.description ?: ""
+
+                val photos = Gson().fromJson(it.photoPath, Array<String>::class.java)?.toList() ?: emptyList()
+                photos.forEach { p ->
+                    val uri = Uri.parse(p)
+                    val bmp = loadBitmapWithCorrectOrientation(resolver, uri)
+                    if (bmp != null) mediaItems.add(MediaItem.Photo(uri, bmp))
+                }
+
+                val videos = Gson().fromJson(it.videoPath, Array<String>::class.java)?.toList() ?: emptyList()
+                videos.forEach { v ->
+                    mediaItems.add(MediaItem.Video(Uri.parse(v)))
+                }
+
+                if (it.latitude != null && it.longitude != null) {
+                    currentLocation = LatLng(it.latitude, it.longitude)
+                }
+            }
+        }
+    }
+
 
     LaunchedEffect(Unit) {
         authRepo.getCurrentUserData(
@@ -387,17 +420,25 @@ fun NewInspectionScreen(
 
         Button(
             onClick = {
-                val report = Report(
+                val updateReport = Report(
+                    id = reportId,
                     address = address,
                     description = description,
                     photoPath = Gson().toJson(photoList),
                     videoPath = Gson().toJson(videoList),
+                    latitude = currentLocation.latitude,
+                    longitude = currentLocation.longitude,
                     status = "PENDING",
-                    createdAt = LocalDateTime.now(),
+                    createdAt = existingReport?.createdAt ?: LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
                     createdBy = currentUserName
                 )
                 scope.launch {
-                    reportRepository.saveReport(report)
+                    if(reportId == 0L) {
+                        reportRepository.saveReport(updateReport)
+                    }else {
+                        reportRepository.updateReport(updateReport)
+                    }
                     navController.popBackStack()
                 }
             },

@@ -36,4 +36,16 @@ class ReportRepository(private val appDatabase: AppDatabase) {
             appDatabase.reportDao().deleteById(id)
         }
     }
+
+    suspend fun getReportById(id: Long): Report? {
+        return withContext(Dispatchers.IO) {
+            appDatabase.reportDao().getById(id)
+        }
+    }
+
+    suspend fun updateReport(report: Report) {
+        withContext(Dispatchers.IO) {
+            appDatabase.reportDao().update(report)
+        }
+    }
 }

@@ -67,7 +67,7 @@ dependencies {
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation("androidx.compose.material:material-icons-extended:1.7.2")
     implementation("androidx.activity:activity-compose:1.7.2")
-    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.firebaseui:firebase-ui-auth:9.0.0")
     implementation("com.google.firebase:firebase-auth")

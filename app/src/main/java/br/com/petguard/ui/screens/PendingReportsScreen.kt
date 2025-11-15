@@ -111,6 +111,7 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
                     report = report,
                     repository = repository,
                     scope = scope,
+                    navController = navController,
                     context = LocalContext.current
                 )
             }
@@ -124,6 +125,7 @@ fun PendingReportCard(
     report: Report,
     repository: ReportRepository,
     scope: CoroutineScope,
+    navController: NavController,
     context: Context
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -315,6 +317,16 @@ fun PendingReportCard(
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text("Concluir", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+
+                                Button(
+                                    onClick = {
+                                        navController.navigate("new_inspection/${report.id}")
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001)),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Editar", color = Color.White)
                                 }
 
                                 Button(

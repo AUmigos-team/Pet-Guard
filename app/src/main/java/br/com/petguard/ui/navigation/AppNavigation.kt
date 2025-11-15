@@ -11,10 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import br.com.petguard.data.database.AppDatabase
 import br.com.petguard.data.repository.ReportRepository
 import br.com.petguard.ui.screens.HomeScreen
@@ -55,6 +57,10 @@ fun AppNavigation() {
             startDestination = "splash",
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable("new_inspection/{reportId}") { backStackEntry ->
+                val reportId = backStackEntry.arguments?.getString("reportId")?.toLongOrNull() ?: 0L
+                NewInspectionScreen(navController, repository, reportId)
+            }
             composable("splash") { SplashScreen(navController) }
             composable("login") { LoginScreen(navController) }
             composable("register") { RegisterScreen(navController) }
