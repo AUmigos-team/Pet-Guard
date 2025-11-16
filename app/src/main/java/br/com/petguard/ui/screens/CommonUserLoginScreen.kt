@@ -111,10 +111,8 @@ fun CommonUserLoginScreen(navController: NavController) {
             onClick = {
                 authRepo.loginUser(email, password,
                     onSuccess = {
-
                         authRepo.getCurrentUserData(
                             onSuccess = { data ->
-
                                 val user = User(
                                     name = data["name"].toString(),
                                     email = email,
@@ -126,11 +124,9 @@ fun CommonUserLoginScreen(navController: NavController) {
 
                                 scope.launch {
                                     userRepo.clearSession()
-                                    userRepo.saveUser(user)
+                                    val userId = userRepo.saveUser(user)
                                 }
-
                                 navController.navigate("home")
-
                             },
                             onError = { msg ->
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()

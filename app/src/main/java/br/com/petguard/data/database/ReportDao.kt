@@ -21,8 +21,8 @@ interface ReportDao {
     @Query("SELECT * FROM report WHERE status != 'PENDING' ORDER BY updatedAt DESC")
     fun getCompletedReports(): Flow<List<Report>>
 
-    @Query("UPDATE report SET status = 'COMPLETED' WHERE id = :id")
-    suspend fun markAsCompleted(id: Long)
+//    @Query("UPDATE report SET status = 'COMPLETED' WHERE id = :id")
+//    suspend fun markAsCompleted(id: Long)
 
     @Query("DELETE FROM report WHERE id = :id")
     suspend fun deleteById(id: Long)

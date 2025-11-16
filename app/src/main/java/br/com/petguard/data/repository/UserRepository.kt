@@ -12,8 +12,8 @@ class UserRepository(private val appDatabase: AppDatabase) {
         return appDatabase.userDao().getLoggedUser()
     }
 
-    suspend fun saveUser(user: User) {
-        appDatabase.userDao().saveUser(user)
+    suspend fun saveUser(user: User): Long {
+        return appDatabase.userDao().saveUser(user)
     }
 
     suspend fun updateUser(user: User) {

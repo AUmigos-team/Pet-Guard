@@ -9,7 +9,7 @@ import androidx.room.Update
 @Dao
 interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveUser(user: User)
+    suspend fun saveUser(user: User): Long
 
     @Query("SELECT * FROM user WHERE logged = 1 LIMIT 1")
     suspend fun getLoggedUser(): User?
@@ -33,5 +33,5 @@ interface UserDao {
     suspend fun deleteAll()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(user: User)
+    suspend fun insert(user: User): Long
 }

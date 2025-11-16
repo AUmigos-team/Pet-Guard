@@ -76,8 +76,7 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
         if(isCommonUser) {
             val userId = currentUser?.id?.toString() ?: ""
             scope.launch {
-                repository.pendingReports.collectLatest { allPending ->
-                    val userReports = allPending.filter { it.reportedByUserId == userId }
+                repository.getPendingReportsByUserId(userId).collectLatest { userReports ->
                     reports = userReports
                 }
             }

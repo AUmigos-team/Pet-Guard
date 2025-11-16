@@ -83,7 +83,6 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
         scope.launch {
             if (isCommonUser) {
                 val userId = currentUser?.id?.toString() ?: ""
-
                 repository.getCompletedReportsByUserId(userId).collectLatest { userReports ->
                     reports = userReports
                 }

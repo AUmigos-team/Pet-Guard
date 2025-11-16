@@ -110,6 +110,11 @@ fun NewInspectionScreen(
     var currentUser by remember { mutableStateOf<User?>(null) }
     var isCommonUser by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        currentUser = userRepository.getCurrentUser()
+        isCommonUser = currentUser?.userType == "COMMON"
+    }
+
     fun createImageOutputUri(): Uri? {
         val filename = "petguard_photo_${System.currentTimeMillis()}.jpg"
         val values = ContentValues().apply {
