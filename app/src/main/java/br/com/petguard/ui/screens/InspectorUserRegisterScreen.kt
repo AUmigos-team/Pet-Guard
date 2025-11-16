@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +46,20 @@ fun InspectorUserRegisterScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var cpf by remember { mutableStateOf("") }
     var registration by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val authRepo = AuthRepository()
     val fontFamily = FontFamily(Font(R.font.playpensans_variablefont_wght))
+
+    LaunchedEffect(registration) {
+        if(registration.isNotBlank()) {
+            email = "$registration@petguard.com.br"
+        } else {
+            email = ""
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -119,6 +129,18 @@ fun InspectorUserRegisterScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
+            value = email,
+            onValueChange = { /* Não permitir edição manual */ },
+            label = { Text("Email (automático)", color = Color(0xFF7E8C54)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp),
+            enabled = false,
+            readOnly = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Digite sua senha", color = Color(0xFF7E8C54)) },
@@ -140,7 +162,7 @@ fun InspectorUserRegisterScreen(navController: NavController) {
                     name = name,
                     registration = registration,
                     cpf = cpf,
-                    email = "$registration@petguard.com.br",
+                    email = email,
                     password = password,
                     onSuccess = {
                         Toast.makeText(context, "Usuário cadastrado com sucesso!", Toast.LENGTH_SHORT).show()
@@ -148,7 +170,7 @@ fun InspectorUserRegisterScreen(navController: NavController) {
                             popUpTo("register") { inclusive = true }
                         }
                     },
-                    onError = { msg : String ->
+                    onError = { msg: String ->
                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                     }
                 )

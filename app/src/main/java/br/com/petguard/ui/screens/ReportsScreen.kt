@@ -81,16 +81,16 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
         isCommonUser = currentUser?.userType == "COMMON"
 
         scope.launch {
-            repository.completedReports.collectLatest { allCompleted ->
-                val filteredReports = if (isCommonUser) {
-                    val userId = currentUser?.id?.toString() ?: ""
-                    allCompleted.filter { report ->
-                        report.reportedByUserId == userId
-                    }
-                } else {
-                    allCompleted
+            if (isCommonUser) {
+                val userId = currentUser?.id?.toString() ?: ""
+
+                repository.getCompletedReportsByUserId(userId).collectLatest { userReports ->
+                    reports = userReports
                 }
-                reports = filteredReports
+            } else {
+                repository.completedReports.collectLatest { allCompleted ->
+                    reports = allCompleted
+                }
             }
         }
     }

@@ -35,7 +35,8 @@ class AuthRepository(
                         "birthDate" to birthDate,
                         "cpf" to cpf,
                         "email" to email,
-                        "userType" to "COMMON"
+                        "userType" to "COMMON",
+                        "registration" to "",
                     )
 
                     db.collection("users")
@@ -46,7 +47,7 @@ class AuthRepository(
                             onError("Erro ao salvar o usuário: ${e.message}")
                         }
 
-                } else {
+                }else {
                     val error = when (task.exception) {
                         is FirebaseAuthUserCollisionException ->
                             "Email ja cadastrado."
@@ -117,6 +118,24 @@ class AuthRepository(
             }
     }
 
+    fun loginInspector(
+        registration: String,
+        password: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val email = "$registration@petguard.com.br"
+
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onSuccess()
+                } else {
+                    onError(task.exception?.message ?: "Login falhou.")
+                }
+            }
+    }
+
     fun getCurrentUserData(
         onSuccess: (Map<String, Any>) -> Unit,
         onError: (String) -> Unit
@@ -142,7 +161,7 @@ class AuthRepository(
             val parts = birthDate.split("/")
 
             if (parts.size != 3) return false
-            if (parts.any { it.length != 2 && it.length != 4 }) return false
+            if (parts[0].length != 2 || parts[1].length != 2 || parts[2].length != 4) return false
 
             val day = parts[0].toInt()
             val month = parts[1].toInt()

@@ -29,4 +29,10 @@ interface ReportDao {
 
     @Update
     suspend fun update(report: Report)
+
+    @Query("SELECT * FROM report WHERE status = 'PENDING' AND reportedByUserId = :userId")
+    fun getPendingReportsByUserId(userId: String): Flow<List<Report>>
+
+    @Query("SELECT * FROM report WHERE status != 'PENDING' AND reportedByUserId = :userId ORDER BY updatedAt DESC")
+    fun getCompletedReportsByUserId(userId: String): Flow<List<Report>>
 }

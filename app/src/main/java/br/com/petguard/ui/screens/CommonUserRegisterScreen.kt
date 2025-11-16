@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -51,6 +53,7 @@ import br.com.petguard.ui.components.GuardPetLogo
 fun CommonUserRegisterScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
+    var birthDigits by remember { mutableStateOf("") }
     var cpf by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -77,6 +80,26 @@ fun CommonUserRegisterScreen(navController: NavController) {
 
     fun isDateComplete(date: String): Boolean {
         return date.length == 10 && date.count { it == '/' } == 2
+    }
+
+    fun formatDigitsToDate(digits: String): String {
+        val d = digits.padEnd(8, '0')
+        return if (digits.length >= 4) {
+            val day = digits.substring(0, minOf(2, digits.length))
+            val month = if (digits.length > 2) digits.substring(2, minOf(4, digits.length)) else ""
+            val year = if (digits.length > 4) digits.substring(4, minOf(8, digits.length)) else ""
+            buildString {
+                append(day)
+                if (month.isNotEmpty()) append("/").append(month)
+                if (year.isNotEmpty()) append("/").append(year)
+            }
+        } else {
+            digits
+        }
+    }
+
+    fun isDateCompleteFromDigits(digits: String): Boolean {
+        return digits.length == 8
     }
 
     Column(
@@ -127,16 +150,17 @@ fun CommonUserRegisterScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = birthDateState.value,
-            onValueChange = { text ->
-                val digits = text.filter { it.isDigit() }.take(8)
-                birthDateState.value = digits
+            value = birthDigits,
+            onValueChange = { new ->
+                val onlyDigits = new.filter { it.isDigit() }.take(8)
+                birthDigits = onlyDigits
             },
             label = { Text("Data de nascimento (DD/MM/AAAA)", color = Color(0xFF7E8C54)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp),
-            visualTransformation = DateVisualTransformation()
+            visualTransformation = DateVisualTransformation(),
+            placeholder = { Text("DD/MM/AAAA") }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -174,19 +198,20 @@ fun CommonUserRegisterScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (name.isBlank() || birthDate.isBlank() || cpf.isBlank() || email.isBlank() || password.isBlank()) {
+                val birthDateFormatted = formatDigitsToDate(birthDigits)
+                if (name.isBlank() || birthDigits.isBlank() || cpf.isBlank() || email.isBlank() || password.isBlank()) {
                     Toast.makeText(context, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 
-                if (!isDateComplete(birthDate)) {
+                if (!isDateCompleteFromDigits(birthDigits)) {
                     Toast.makeText(context, "Data de nascimento incompleta. Use o formato DD/MM/AAAA", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 
                 authRepo.registerCommonUser(
                     name = name,
-                    birthDate = birthDate,
+                    birthDate = birthDateFormatted,
                     cpf = cpf,
                     email = email,
                     password = password,

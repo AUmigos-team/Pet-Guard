@@ -38,9 +38,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.petguard.R
 import br.com.petguard.data.database.AppDatabase
+import br.com.petguard.data.database.User
 import br.com.petguard.data.repository.AuthRepository
 import br.com.petguard.data.repository.UserRepository
 import br.com.petguard.ui.components.GuardPetLogo
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun InspectorUserLoginScreen(navController: NavController) {
@@ -112,14 +115,39 @@ fun InspectorUserLoginScreen(navController: NavController) {
                     return@Button
                 }
 
-                repository.loginUser(
-                    email = "$registration@petguard.com.br",
+                authRepo.loginInspector(
+                    registration = registration,
                     password = password,
                     onSuccess = {
-                        Toast.makeText(context, "Login realizado!", Toast.LENGTH_SHORT).show()
-                        navController.navigate("home") { popUpTo("login") { inclusive = true } }
+                        authRepo.getCurrentUserData(
+                            onSuccess = { data ->
+                                val user = User(
+                                    name = data["name"].toString(),
+                                    email = "$registration@petguard.com.br",
+                                    birthDate = data["birthDate"].toString(),
+                                    cpf = data["cpf"].toString(),
+                                    userType = "INSPECTOR",
+                                    logged = true
+                                )
+
+                                scope.launch {
+                                    userRepo.clearSession()
+                                    userRepo.saveUser(user)
+
+                                    Toast.makeText(context, "Login realizado!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("home") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                }
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                            }
+                        )
                     },
-                    onError = { msg -> Toast.makeText(context, msg, Toast.LENGTH_LONG).show() }
+                    onError = { msg ->
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
                 )
             },
             modifier = Modifier
@@ -129,6 +157,7 @@ fun InspectorUserLoginScreen(navController: NavController) {
         ) {
             Text("Login", fontSize = 20.sp, color = Color.White)
         }
+
 
         Spacer(Modifier.height(20.dp))
 

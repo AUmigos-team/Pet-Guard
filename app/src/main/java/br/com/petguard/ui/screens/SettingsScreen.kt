@@ -176,10 +176,11 @@ fun SettingsScreen(navController: NavController) {
                         )
                     }else {
                         Text(
-                            "Matrícula: ${loggedUser?.registration ?: "-"}",
+                            "Email: ${loggedUser?.email ?: "-"}",
                             color = Color.Gray,
                             fontFamily = playpenSans
                         )
+
                         Text(
                             "Tipo: Fiscal",
                             color = Color(0xFF452001),

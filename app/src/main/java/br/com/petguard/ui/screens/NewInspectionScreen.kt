@@ -108,6 +108,7 @@ fun NewInspectionScreen(
     val appDatabase = AppDatabase.getDatabase(context)
     val userRepository = remember { UserRepository(appDatabase) }
     var currentUser by remember { mutableStateOf<User?>(null) }
+    var isCommonUser by remember { mutableStateOf(false) }
 
     fun createImageOutputUri(): Uri? {
         val filename = "petguard_photo_${System.currentTimeMillis()}.jpg"
@@ -438,7 +439,10 @@ fun NewInspectionScreen(
                     status = "PENDING",
                     createdAt = existingReport?.createdAt ?: LocalDateTime.now(),
                     updatedAt = LocalDateTime.now(),
-                    createdBy = currentUserName
+                    createdBy = currentUserName,
+                    reportedByUserId = if (isCommonUser) currentUser?.id?.toString() else null,
+                    reportedByUserName = if (isCommonUser) currentUserName else null,
+                    reportedByUserCpf = if (isCommonUser) currentUser?.cpf else null
                 )
                 scope.launch {
                     if(reportId == 0L) {

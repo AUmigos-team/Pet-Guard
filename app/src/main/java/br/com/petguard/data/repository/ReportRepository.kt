@@ -82,4 +82,12 @@ class ReportRepository(private val appDatabase: AppDatabase, private val context
             allCompleted.count { it.reportedByUserId == userId }
         }
     }
+
+    fun getPendingReportsByUserId(userId: String): Flow<List<Report>> {
+        return appDatabase.reportDao().getPendingReportsByUserId(userId)
+    }
+
+    fun getCompletedReportsByUserId(userId: String): Flow<List<Report>> {
+        return appDatabase.reportDao().getCompletedReportsByUserId(userId)
+    }
 }
