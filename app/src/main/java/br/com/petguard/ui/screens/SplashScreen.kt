@@ -59,13 +59,17 @@ fun SplashScreen(navController: NavController) {
         delay(2000)
 
         val database = AppDatabase.getDatabase(context)
-        val user = database.userDao().getLoggedUser()
+        val user = try {
+            database.userDao().getLoggedUser()
+        }catch (e: Exception) {
+            null
+        }
         if(FirebaseAuth.getInstance().currentUser != null && user != null) {
             navController.navigate("home") {
                 popUpTo("splash") {inclusive = true}
             }
         }else{
-            navController.navigate("login") {
+            navController.navigate("user_type_selection") {
                 popUpTo("splash") {inclusive = true}
             }
         }

@@ -61,6 +61,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import br.com.petguard.data.repository.AuthRepository
 import androidx.navigation.NavController
+import br.com.petguard.data.database.AppDatabase
+import br.com.petguard.data.database.User
+import br.com.petguard.data.repository.UserRepository
 
 sealed class MediaItem {
     data class Photo(val uri: Uri, val bitmap: Bitmap) : MediaItem()
@@ -101,6 +104,10 @@ fun NewInspectionScreen(
 
     val photoList = mediaItems.filterIsInstance<MediaItem.Photo>().map { it.uri.toString() }
     val videoList = mediaItems.filterIsInstance<MediaItem.Video>().map { it.uri.toString() }
+
+    val appDatabase = AppDatabase.getDatabase(context)
+    val userRepository = remember { UserRepository(appDatabase) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
 
     fun createImageOutputUri(): Uri? {
         val filename = "petguard_photo_${System.currentTimeMillis()}.jpg"

@@ -58,8 +58,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import br.com.petguard.data.database.AppDatabase
+import br.com.petguard.data.repository.UserRepository
 import coil.compose.rememberAsyncImagePainter
 import com.google.gson.Gson
+import br.com.petguard.data.database.User
 
 @Composable
 fun ReportsScreen(navController: NavController, repository: ReportRepository) {
@@ -67,10 +70,27 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
     var reports by remember { mutableStateOf<List<Report>>(emptyList()) }
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
+    val context = LocalContext.current
+    val appDatabase = AppDatabase.getDatabase(context)
+    val userRepository = remember { UserRepository(appDatabase) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+    var isCommonUser by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
+        currentUser = userRepository.getCurrentUser()
+        isCommonUser = currentUser?.userType == "COMMON"
+
         scope.launch {
-            repository.completedReports.collectLatest {
-                reports = it
+            repository.completedReports.collectLatest { allCompleted ->
+                val filteredReports = if (isCommonUser) {
+                    val userId = currentUser?.id?.toString() ?: ""
+                    allCompleted.filter { report ->
+                        report.reportedByUserId == userId
+                    }
+                } else {
+                    allCompleted
+                }
+                reports = filteredReports
             }
         }
     }
@@ -104,7 +124,7 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
         ) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Relatórios concluídos",
+                text = if (isCommonUser) "Minhas Denúncias Concluídas" else "Relatórios Concluídos",
                 color = Color(0xFF6A4A2E),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -113,13 +133,31 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
             Spacer(Modifier.height(16.dp))
         }
 
-        LazyColumn {
-            itemsIndexed(reports) { index, report ->
-                CompletedReportCard(
-                    index = index + 1,
-                    report = report,
-                    dtf = dtf
+        if (reports.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isCommonUser) "Você não possui denúncias concluídas"
+                    else "Não há denúncias concluídas",
+                    color = Color(0xFF7E8C54),
+                    fontSize = 16.sp,
+                    fontFamily = playpenSansVariableFontWght
                 )
+            }
+        } else {
+            LazyColumn {
+                itemsIndexed(reports) { index, report ->
+                    CompletedReportCard(
+                        index = index + 1,
+                        report = report,
+                        dtf = dtf,
+                        isCommonUser = isCommonUser
+                    )
+                }
             }
         }
     }
@@ -129,7 +167,8 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
 fun CompletedReportCard(
     index: Int,
     report: Report,
-    dtf: DateTimeFormatter
+    dtf: DateTimeFormatter,
+    isCommonUser: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -191,7 +230,16 @@ fun CompletedReportCard(
                     fontFamily = playpenSansVariableFontWght
                 )
 
-                if (!report.createdBy.isNullOrEmpty()) {
+                if(!report.reportedByUserName.isNullOrEmpty()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "Denúncia feita por: ${report.reportedByUserName}",
+                        color = Color(0xFF7E8C54),
+                        fontSize = 12.sp,
+                        fontFamily = playpenSansVariableFontWght,
+                        fontWeight = FontWeight.Normal
+                    )
+                }else if (!report.createdBy.isNullOrEmpty()) {
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = "Criado por: ${report.createdBy}",
@@ -202,7 +250,7 @@ fun CompletedReportCard(
                     )
                 }
 
-                if (!report.completedBy.isNullOrEmpty()) {
+                if(!report.completedBy.isNullOrEmpty()) {
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = "Concluído por: ${report.completedBy}",
@@ -249,7 +297,7 @@ fun CompletedReportCard(
                             fontSize = 14.sp
                         )
 
-                        if (photoList.isNotEmpty() || videoList.isNotEmpty()) {
+                        if(photoList.isNotEmpty() || videoList.isNotEmpty()) {
                             Spacer(Modifier.height(12.dp))
                             Text(
                                 text = "Mídias anexadas:",

@@ -9,31 +9,33 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import br.com.petguard.data.database.AppDatabase
 import br.com.petguard.data.repository.ReportRepository
+import br.com.petguard.ui.screens.CommonUserLoginScreen
+import br.com.petguard.ui.screens.CommonUserRegisterScreen
 import br.com.petguard.ui.screens.HomeScreen
-import br.com.petguard.ui.screens.LoginScreen
+import br.com.petguard.ui.screens.InspectorUserLoginScreen
+import br.com.petguard.ui.screens.InspectorUserRegisterScreen
 import br.com.petguard.ui.screens.NewInspectionScreen
 import br.com.petguard.ui.screens.PendingReportsScreen
-import br.com.petguard.ui.screens.RegisterScreen
 import br.com.petguard.ui.screens.ReportsScreen
 import br.com.petguard.ui.screens.SettingsScreen
 import br.com.petguard.ui.screens.SplashScreen
+import br.com.petguard.ui.screens.UserTypeSelectionScreen
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val appDatabase = AppDatabase.getDatabase(context)
-    val repository = ReportRepository(appDatabase)
+    val repository = remember { ReportRepository(appDatabase, context) }
 
     val bottomItems = listOf(
         BottomNavItem("home", "Denúncias", Icons.Filled.Home),
@@ -47,7 +49,12 @@ fun AppNavigation() {
 
     Scaffold(
         bottomBar = {
-            if (currentRoute !in listOf("splash", "login", "register")) {
+            if (currentRoute !in listOf("splash",
+                    "common_login",
+                    "common_register",
+                    "inspector_register",
+                    "inspector_login",
+                    "user_type_selection")) {
                 BottomNavBar(navController, bottomItems)
             }
         }
@@ -62,13 +69,16 @@ fun AppNavigation() {
                 NewInspectionScreen(navController, repository, reportId)
             }
             composable("splash") { SplashScreen(navController) }
-            composable("login") { LoginScreen(navController) }
-            composable("register") { RegisterScreen(navController) }
+            composable("common_login") { CommonUserLoginScreen(navController) }
+            composable("common_register") { CommonUserRegisterScreen(navController) }
+            composable("inspector_register") { InspectorUserRegisterScreen(navController) }
+            composable("inspector_login") { InspectorUserLoginScreen(navController) }
             composable("home") { HomeScreen(navController, repository) }
             composable("new_inspection") { NewInspectionScreen(navController, repository) }
             composable("pending_reports") { PendingReportsScreen(navController, repository) }
             composable("reports") { ReportsScreen(navController, repository) }
             composable("settings") { SettingsScreen(navController) }
+            composable("user_type_selection") { UserTypeSelectionScreen(navController) }
         }
     }
 }

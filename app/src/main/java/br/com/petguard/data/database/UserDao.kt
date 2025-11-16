@@ -25,4 +25,13 @@ interface UserDao {
 
     @Query("SELECT * FROM user WHERE registration = :registration LIMIT 1")
     suspend fun findByRegistration(registration: String): User?
+
+    @Query("SELECT * FROM user WHERE email = :email LIMIT 1")
+    suspend fun findByEmail(email: String): User?
+
+    @Query("DELETE FROM user")
+    suspend fun deleteAll()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(user: User)
 }

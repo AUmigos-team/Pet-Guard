@@ -50,7 +50,10 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.IconButton
+import br.com.petguard.data.database.AppDatabase
 import br.com.petguard.data.repository.AuthRepository
+import br.com.petguard.data.repository.UserRepository
+import br.com.petguard.data.database.User
 
 val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
@@ -60,9 +63,30 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
     var reports by remember { mutableStateOf<List<Report>>(emptyList()) }
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
+    val context = LocalContext.current
+    val appDatabase = AppDatabase.getDatabase(context)
+    val userRepository = remember { UserRepository(appDatabase) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+    var isCommonUser by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
-        repository.pendingReports.collectLatest {
-            reports = it
+        currentUser = userRepository.getCurrentUser()
+        isCommonUser = currentUser?.userType == "COMMON"
+
+        if(isCommonUser) {
+            val userId = currentUser?.id?.toString() ?: ""
+            scope.launch {
+                repository.pendingReports.collectLatest { allPending ->
+                    val userReports = allPending.filter { it.reportedByUserId == userId }
+                    reports = userReports
+                }
+            }
+        }else {
+            scope.launch {
+                repository.pendingReports.collectLatest {
+                    reports = it
+                }
+            }
         }
     }
 
@@ -95,7 +119,7 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
         ) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Denúncias pendentes",
+                text = if (isCommonUser) "Minhas Denúncias Pendentes" else "Denúncias Pendentes",
                 color = Color(0xFF6A4A2E),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -104,16 +128,35 @@ fun PendingReportsScreen(navController: NavController, repository: ReportReposit
             Spacer(Modifier.height(16.dp))
         }
 
-        LazyColumn {
-            itemsIndexed(reports) { index, report ->
-                PendingReportCard(
-                    index = index + 1,
-                    report = report,
-                    repository = repository,
-                    scope = scope,
-                    navController = navController,
-                    context = LocalContext.current
+        if(reports.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isCommonUser) "Você não possui denúncias pendentes"
+                    else "Não há denúncias pendentes",
+                    color = Color(0xFF7E8C54),
+                    fontSize = 16.sp,
+                    fontFamily = playpenSansVariableFontWght
                 )
+            }
+        }else {
+            LazyColumn {
+                itemsIndexed(reports) { index, report ->
+                    PendingReportCard(
+                        index = index + 1,
+                        report = report,
+                        repository = repository,
+                        scope = scope,
+                        navController = navController,
+                        context = context,
+                        isCommonUser = isCommonUser,
+                        currentUserId = currentUser?.id?.toString() ?: ""
+                    )
+                }
             }
         }
     }
@@ -126,7 +169,9 @@ fun PendingReportCard(
     repository: ReportRepository,
     scope: CoroutineScope,
     navController: NavController,
-    context: Context
+    context: Context,
+    isCommonUser: Boolean,
+    currentUserId: String
 ) {
     var expanded by remember { mutableStateOf(false) }
     val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
@@ -193,7 +238,16 @@ fun PendingReportCard(
                 Spacer(Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    if (!report.createdBy.isNullOrEmpty()) {
+                    if(!report.reportedByUserName.isNullOrEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Denúncia feita por: ${report.reportedByUserName}",
+                            color = Color(0xFF7E8C54),
+                            fontSize = 12.sp,
+                            fontFamily = playpenSansVariableFontWght,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }else if (!report.createdBy.isNullOrEmpty()) {
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = "Criado por: ${report.createdBy}",
@@ -307,38 +361,60 @@ fun PendingReportCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Button(
-                                    onClick = {
-                                        scope.launch {
-                                            repository.markAsCompleted(report.id, currentUserName)
+                                if(isCommonUser) {
+                                    if (report.reportedByUserId == currentUserId) {
+                                        Button(
+                                            onClick = {
+                                                navController.navigate("new_inspection/${report.id}")
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001)),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Editar", color = Color.White)
                                         }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E8C54)),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Concluir", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
+                                    } else {
+                                        Text(
+                                            text = "Apenas visualização",
+                                            color = Color(0xFF7E8C54),
+                                            fontSize = 14.sp,
+                                            fontFamily = playpenSansVariableFontWght,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                }else {
+                                    Button(
+                                        onClick = {
+                                            scope.launch {
+                                                repository.markAsCompleted(report.id, currentUserName)
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E8C54)),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Concluir", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
 
-                                Button(
-                                    onClick = {
-                                        navController.navigate("new_inspection/${report.id}")
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001)),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Editar", color = Color.White)
-                                }
+                                    Button(
+                                        onClick = {
+                                            navController.navigate("new_inspection/${report.id}")
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF452001)),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Editar", color = Color.White)
+                                    }
 
-                                Button(
-                                    onClick = {
-                                        scope.launch {
-                                            repository.deleteById(report.id)
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD9534F)),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Excluir", color = Color.White, fontWeight = FontWeight.Bold)
+                                    Button(
+                                        onClick = {
+                                            scope.launch {
+                                                repository.deleteById(report.id)
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD9534F)),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Excluir", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }

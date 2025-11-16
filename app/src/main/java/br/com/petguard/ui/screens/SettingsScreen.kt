@@ -36,46 +36,68 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import br.com.petguard.R
 import br.com.petguard.data.database.AppDatabase
 import br.com.petguard.data.database.User
 import br.com.petguard.data.repository.AuthRepository
+import br.com.petguard.data.repository.UserRepository
 import br.com.petguard.ui.components.GuardPetLogo
 import br.com.petguard.ui.theme.ThemeManager
 import br.com.petguard.ui.theme.ThemePreference
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val appDatabase = AppDatabase.getDatabase(context)
+    val userRepository = remember { UserRepository(appDatabase) }
     val userDao = appDatabase.userDao()
     val authRepo = remember { AuthRepository() }
     val scope = rememberCoroutineScope()
+    val playpenSans = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
     var notificationsEnabled by remember { mutableStateOf(true) }
     var darkModeEnabled by remember { mutableStateOf(ThemeManager.isDarkTheme.value) }
 
     var loggedUser by remember { mutableStateOf<User?>(null) }
+    var isCommonUser by remember { mutableStateOf(false) }
 
-    // Buscar usuário logado quando a tela é aberta
     LaunchedEffect(Unit) {
-        authRepo.getCurrentUserData(
-            onSuccess = { data ->
-                loggedUser = User(
-                    name = data["name"] as? String ?: "",
-                    registration = data["registration"] as? String ?: "",
-                    cpf = data["cpf"] as? String ?: "",
-                    logged = true
-                )
-            },
-            onError = { msg ->
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-            }
-        )
+        val localUser = userRepository.getCurrentUser()
+        if(localUser != null) {
+            loggedUser = localUser
+            isCommonUser = localUser.userType == "COMMON"
+        } else {
+            authRepo.getCurrentUserData(
+                onSuccess = { data ->
+                    val userType = data["userType"] as? String ?: "COMMON"
+                    loggedUser = User(
+                        name = data["name"] as? String ?: "",
+                        email = data["email"] as? String ?: "",
+                        birthDate = data["birthDate"] as? String ?: "",
+                        registration = data["registration"] as? String,
+                        cpf = data["cpf"] as? String ?: "",
+                        userType = userType,
+                        logged = true
+                    )
+                    isCommonUser = userType == "COMMON"
+
+                    scope.launch {
+                        loggedUser?.let { userRepository.saveUser(it) }
+                    }
+                },
+                onError = { msg ->
+                    Toast.makeText(context, "Erro ao carregar dados: $msg", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
     }
 
     Column(
@@ -84,7 +106,6 @@ fun SettingsScreen(navController: NavController) {
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Cabeçalho com botão voltar
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -94,7 +115,6 @@ fun SettingsScreen(navController: NavController) {
             }
         }
 
-        // Logo
         GuardPetLogo(
             modifier = Modifier.fillMaxWidth(),
             fontSizeMain = 40,
@@ -114,7 +134,6 @@ fun SettingsScreen(navController: NavController) {
 
         Spacer(Modifier.height(16.dp))
 
-        // Card com dados do usuário logado
         Card(
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F3F3)),
@@ -133,16 +152,47 @@ fun SettingsScreen(navController: NavController) {
                 )
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("Dados do usuário:", color = Color.Gray, fontWeight = FontWeight.Bold)
-                    Text("Nome: ${loggedUser?.name ?: "-"}", color = Color.Gray)
-                    Text("Matrícula: ${loggedUser?.registration ?: "-"}", color = Color.Gray)
+                    Text(
+                        text = "Dados do usuário:",
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Nome: ${loggedUser?.name ?: "-"}",
+                        color = Color.Gray
+                    )
+
+                    if(isCommonUser) {
+                        Text(
+                            "Email: ${loggedUser?.email ?: "-"}",
+                            color = Color.Gray,
+                            fontFamily = playpenSans
+                        )
+                        Text(
+                            "Tipo: Usuário Comum",
+                            color = Color(0xFF7E8C54),
+                            fontSize = 12.sp,
+                            fontFamily = playpenSans
+                        )
+                    }else {
+                        Text(
+                            "Matrícula: ${loggedUser?.registration ?: "-"}",
+                            color = Color.Gray,
+                            fontFamily = playpenSans
+                        )
+                        Text(
+                            "Tipo: Fiscal",
+                            color = Color(0xFF452001),
+                            fontSize = 12.sp,
+                            fontFamily = playpenSans
+                        )
+                    }
                 }
             }
         }
 
         Spacer(Modifier.height(32.dp))
 
-        // Switches de notificações
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -168,7 +218,6 @@ fun SettingsScreen(navController: NavController) {
 
         Spacer(Modifier.height(16.dp))
 
-        // Switch de modo escuro
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -198,14 +247,14 @@ fun SettingsScreen(navController: NavController) {
 
         Spacer(Modifier.height(32.dp))
 
-        // Botão de logout
         Button(
             onClick = {
                 scope.launch {
-                    loggedUser?.let {
-                        userDao.update(it.copy(logged = false))
+                    loggedUser?.let { user ->
+                        userRepository.updateUser(user.copy(logged = false))
                     }
-                    navController.navigate("login") {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate("user_type_selection") {
                         popUpTo("home") { inclusive = true }
                     }
                 }

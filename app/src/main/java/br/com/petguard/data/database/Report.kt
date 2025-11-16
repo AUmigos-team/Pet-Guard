@@ -41,5 +41,14 @@ data class Report (
     val createdBy: String? = null,
 
     @ColumnInfo(name = "completedBy")
-    val completedBy: String? = null
+    val completedBy: String? = null,
+
+    @ColumnInfo(name = "reportedByUserId")
+    val reportedByUserId: String? = null,
+
+    @ColumnInfo(name = "reportedByUserName")
+    val reportedByUserName: String? = null,
+
+    @ColumnInfo(name = "reportedByUserCpf")
+    val reportedByUserCpf: String? = null
 )

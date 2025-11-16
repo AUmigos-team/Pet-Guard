@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,13 +27,42 @@ import br.com.petguard.R
 import br.com.petguard.data.repository.ReportRepository
 import br.com.petguard.ui.components.GuardPetLogo
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import br.com.petguard.data.database.AppDatabase
+import br.com.petguard.data.database.User
+import br.com.petguard.data.repository.UserRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun HomeScreen(navController: NavController, reportRepository: ReportRepository) {
+    val context = LocalContext.current
     val playpenSans = FontFamily(Font(R.font.playpensans_variablefont_wght))
     val pendingReports by reportRepository.pendingReports.collectAsState(initial = emptyList())
     val completedReports by reportRepository.completedReports.collectAsState(initial = emptyList())
+    val userRepository = remember { UserRepository(AppDatabase.getDatabase(context)) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+    var isCommonUser by remember { mutableStateOf(false) }
+    var userPendingCount by remember { mutableStateOf(0) }
+    var userCompletedCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        currentUser = userRepository.getCurrentUser()
+        isCommonUser = currentUser?.userType == "COMMON"
+
+        if (isCommonUser) {
+            val userId = currentUser?.id?.toString() ?: ""
+            userPendingCount = withContext(Dispatchers.IO) {
+                pendingReports.count { it.reportedByUserId == userId }
+            }
+            userCompletedCount = withContext(Dispatchers.IO) {
+                completedReports.count { it.reportedByUserId == userId }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -62,7 +92,7 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
             )
 
             Text(
-                text = "Olá, Fiscal!",
+                text = if (isCommonUser) "Olá, ${currentUser?.name ?: "Usuário"}!" else "Olá, Fiscal!",
                 fontSize = 24.sp,
                 fontFamily = playpenSans,
                 fontWeight = FontWeight.SemiBold,
@@ -143,7 +173,8 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "${pendingReports.size} denúncias\npendentes",
+                                    text = if (isCommonUser) "$userPendingCount denúncias\npendentes"
+                                    else "${pendingReports.size} denúncias\npendentes",
                                     fontWeight = FontWeight.Light,
                                     fontFamily = playpenSans,
                                     color = Color(0xFFAF9733),
@@ -177,7 +208,8 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "${completedReports.size} denúncias\nconcluídas",
+                                    text = if (isCommonUser) "$userCompletedCount denúncias\nconcluídas"
+                                    else "${completedReports.size} denúncias\nconcluídas",
                                     fontWeight = FontWeight.Light,
                                     fontFamily = playpenSans,
                                     textAlign = TextAlign.Center,

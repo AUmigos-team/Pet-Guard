@@ -83,7 +83,7 @@ fun BottomMenu(navController: NavController, currentScreen: String = "home", mod
                     .weight(1f)
                     .clickable {
                         if (currentScreen != "visitas") {
-                            navController.navigate("pending_reports")
+                            navController.navigate("new_inspection")
                         }
                     }
             ) {
@@ -103,7 +103,7 @@ fun BottomMenu(navController: NavController, currentScreen: String = "home", mod
                         .weight(1f)
                         .clickable {
                             if (currentScreen != "visitas") {
-                                // navController.navigate("visits") - Implemente quando criar a tela
+                                navController.navigate("new_inspection")
                             }
                         }
                 )
