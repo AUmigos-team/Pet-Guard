@@ -42,6 +42,7 @@ import br.com.petguard.data.database.User
 import br.com.petguard.data.repository.AuthRepository
 import br.com.petguard.data.repository.UserRepository
 import br.com.petguard.ui.components.GuardPetLogo
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -121,7 +122,10 @@ fun InspectorUserLoginScreen(navController: NavController) {
                     onSuccess = {
                         authRepo.getCurrentUserData(
                             onSuccess = { data ->
+                                val firebaseUid = FirebaseAuth.getInstance().currentUser!!.uid
+
                                 val user = User(
+                                    uid = firebaseUid,
                                     name = data["name"].toString(),
                                     email = "$registration@petguard.com.br",
                                     birthDate = data["birthDate"].toString(),

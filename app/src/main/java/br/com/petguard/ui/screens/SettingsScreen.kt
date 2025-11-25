@@ -78,7 +78,10 @@ fun SettingsScreen(navController: NavController) {
             authRepo.getCurrentUserData(
                 onSuccess = { data ->
                     val userType = data["userType"] as? String ?: "COMMON"
+                    val firebaseUid = FirebaseAuth.getInstance().currentUser!!.uid
+
                     loggedUser = User(
+                        uid = firebaseUid,
                         name = data["name"] as? String ?: "",
                         email = data["email"] as? String ?: "",
                         birthDate = data["birthDate"] as? String ?: "",

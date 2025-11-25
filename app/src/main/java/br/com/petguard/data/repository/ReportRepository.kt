@@ -71,15 +71,13 @@ class ReportRepository(private val appDatabase: AppDatabase, private val context
 
     suspend fun getUserPendingReportsCount(userId: String): Int {
         return withContext(Dispatchers.IO) {
-            val allPending = appDatabase.reportDao().getPendingReports().first()
-            allPending.count { it.reportedByUserId == userId }
+            appDatabase.reportDao().countPendingReportsByUserId(userId)
         }
     }
 
     suspend fun getUserCompletedReportsCount(userId: String): Int {
         return withContext(Dispatchers.IO) {
-            val allCompleted = appDatabase.reportDao().getCompletedReports().first()
-            allCompleted.count { it.reportedByUserId == userId }
+            appDatabase.reportDao().countCompletedReportsByUserId(userId)
         }
     }
 
@@ -89,5 +87,22 @@ class ReportRepository(private val appDatabase: AppDatabase, private val context
 
     fun getCompletedReportsByUserId(userId: String): Flow<List<Report>> {
         return appDatabase.reportDao().getCompletedReportsByUserId(userId)
+    }
+
+
+    suspend fun getPendingReportsForCurrentUser(userId: String?, userType: String): Flow<List<Report>> {
+        return if (userType == "COMMON" && userId != null) {
+            appDatabase.reportDao().getPendingReportsByUserId(userId)
+        } else {
+            appDatabase.reportDao().getPendingReports()
+        }
+    }
+
+    suspend fun getCompletedReportsForCurrentUser(userId: String?, userType: String): Flow<List<Report>> {
+        return if (userType == "COMMON" && userId != null) {
+            appDatabase.reportDao().getCompletedReportsByUserId(userId)
+        } else {
+            appDatabase.reportDao().getCompletedReports()
+        }
     }
 }

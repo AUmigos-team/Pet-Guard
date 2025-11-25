@@ -54,13 +54,9 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
         isCommonUser = currentUser?.userType == "COMMON"
 
         if (isCommonUser) {
-            val userId = currentUser?.id?.toString() ?: ""
-            userPendingCount = withContext(Dispatchers.IO) {
-                pendingReports.count { it.reportedByUserId == userId }
-            }
-            userCompletedCount = withContext(Dispatchers.IO) {
-                completedReports.count { it.reportedByUserId == userId }
-            }
+            val userId = currentUser?.uid ?: ""
+            userPendingCount = reportRepository.getUserPendingReportsCount(userId)
+            userCompletedCount = reportRepository.getUserCompletedReportsCount(userId)
         }
     }
 
@@ -154,7 +150,13 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
                             .weight(1f)
                             .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFFDE8A4)),
-                        onClick = { navController.navigate("pending_reports") }
+                        onClick = {
+                            if(isCommonUser) {
+                                navController.navigate("my_pending_reports")
+                            }else {
+                                navController.navigate("pending_reports")
+                            }
+                        }
                     ) {
                         Box(
                             modifier = Modifier
@@ -189,7 +191,13 @@ fun HomeScreen(navController: NavController, reportRepository: ReportRepository)
                             .weight(1f)
                             .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFD2D8C0)),
-                        onClick = { navController.navigate("reports") }
+                        onClick = {
+                            if (isCommonUser) {
+                                navController.navigate("my_completed_reports")
+                            }else{
+                                navController.navigate("reports")
+                            }
+                        }
                     ) {
                         Box(
                             modifier = Modifier

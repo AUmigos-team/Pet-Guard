@@ -1,0 +1,456 @@
+package br.com.petguard.ui.screens
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import br.com.petguard.data.database.Report
+import br.com.petguard.data.repository.ReportRepository
+import br.com.petguard.ui.components.GuardPetLogo
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import java.time.format.DateTimeFormatter
+import android.content.Context
+import android.net.Uri
+import android.widget.VideoView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.viewinterop.AndroidView
+import br.com.petguard.data.database.AppDatabase
+import br.com.petguard.data.repository.UserRepository
+import coil.compose.rememberAsyncImagePainter
+import com.google.gson.Gson
+import br.com.petguard.data.database.User
+
+@Composable
+fun MyCompletedReportsScreen(navController: NavController, repository: ReportRepository) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var reports by remember { mutableStateOf<List<Report>>(emptyList()) }
+    val dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+
+    val appDatabase = AppDatabase.getDatabase(context)
+    val userRepository = remember { UserRepository(appDatabase) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        currentUser = userRepository.getCurrentUser()
+        val userId = currentUser?.uid ?: ""
+
+        if (userId.isNotEmpty()) {
+            scope.launch {
+                repository.getCompletedReportsByUserId(userId).collect { userReports ->
+                    reports = userReports
+                    isLoading = false
+                }
+            }
+        } else {
+            isLoading = false
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color(0xFF7E8C54))
+            }
+        }
+
+        GuardPetLogo(
+            modifier = Modifier.fillMaxWidth(),
+            fontSizeMain = 40,
+            fontSizeSub = 28,
+            subtitleSize = 14
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Minhas Denúncias Concluídas",
+                color = Color(0xFF6A4A2E),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = playpenSansVariableFontWght
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Carregando...",
+                    color = Color(0xFF7E8C54),
+                    fontSize = 16.sp,
+                    fontFamily = playpenSansVariableFontWght
+                )
+            }
+        } else if (reports.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Você não possui denúncias concluídas",
+                        color = Color(0xFF7E8C54),
+                        fontSize = 16.sp,
+                        fontFamily = playpenSansVariableFontWght,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Suas denúncias concluídas pelos fiscais aparecerão aqui",
+                        color = Color(0xFF7E8C54),
+                        fontSize = 12.sp,
+                        fontFamily = playpenSansVariableFontWght,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            LazyColumn {
+                itemsIndexed(reports) { index, report ->
+                    MyCompletedReportCard(
+                        index = index + 1,
+                        report = report,
+                        dtf = dtf,
+                        context = context
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MyCompletedReportCard(
+    index: Int,
+    report: Report,
+    dtf: DateTimeFormatter,
+    context: Context
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var mediaDialogOpen by remember { mutableStateOf(false) }
+    var selectedMediaUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedIsVideo by remember { mutableStateOf(false) }
+
+    val gson = Gson()
+    val photoList: List<String> = report.photoPath?.let {
+        try {
+            gson.fromJson(it, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    } ?: emptyList()
+
+    val videoList: List<String> = report.videoPath?.let {
+        try {
+            gson.fromJson(it, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    } ?: emptyList()
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .animateContentSize(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFD2D8C0)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(Color(0xFF7E8C54), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = index.toString(),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = playpenSansVariableFontWght
+                    )
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = report.address ?: "Endereço não informado",
+                        color = Color(0xFF7E8C54),
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = playpenSansVariableFontWght,
+                        fontSize = 16.sp
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(
+                        text = "Status: ${report.status}",
+                        color = when (report.status) {
+                            "COMPLETED" -> Color(0xFF388E3C)
+                            "RESOLVED" -> Color(0xFF388E3C)
+                            else -> Color(0xFF7E8C54)
+                        },
+                        fontSize = 12.sp,
+                        fontFamily = playpenSansVariableFontWght,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    if (!report.completedBy.isNullOrEmpty()) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "Concluído por: ${report.completedBy}",
+                            color = Color(0xFF7E8C54),
+                            fontSize = 11.sp,
+                            fontFamily = playpenSansVariableFontWght
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        text = if (expanded) "Recolher detalhes" else "Ver detalhes completos",
+                        color = Color(0xFF7E8C54),
+                        fontSize = 14.sp,
+                        modifier = Modifier.clickable { expanded = !expanded },
+                        fontFamily = playpenSansVariableFontWght,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    AnimatedVisibility(expanded) {
+                        Column {
+                            Spacer(Modifier.height(12.dp))
+
+                            Text(
+                                text = "Descrição:",
+                                color = Color(0xFF7E8C54),
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = playpenSansVariableFontWght,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = report.description ?: "Sem descrição fornecida",
+                                color = Color(0xFF7E8C54),
+                                fontFamily = playpenSansVariableFontWght,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+
+                            Spacer(Modifier.height(12.dp))
+
+                            Column {
+                                Text(
+                                    text = "Datas:",
+                                    color = Color(0xFF7E8C54),
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 14.sp
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "• Criada em: ${report.createdAt?.format(dtf) ?: "Data não disponível"}",
+                                    color = Color(0xFF7E8C54),
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 12.sp
+                                )
+                                Text(
+                                    text = "• Atualizada em: ${report.updatedAt?.format(dtf) ?: "Data não disponível"}",
+                                    color = Color(0xFF7E8C54),
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            if (photoList.isNotEmpty() || videoList.isNotEmpty()) {
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    text = "Mídias anexadas:",
+                                    color = Color(0xFF7E8C54),
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 14.sp
+                                )
+                                Spacer(Modifier.height(8.dp))
+
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    items(photoList) { path ->
+                                        val imageUri = Uri.parse(path)
+                                        Image(
+                                            painter = rememberAsyncImagePainter(imageUri),
+                                            contentDescription = "Foto da denúncia",
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .clickable {
+                                                    selectedMediaUri = imageUri
+                                                    selectedIsVideo = false
+                                                    mediaDialogOpen = true
+                                                },
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+
+                                    items(videoList) { path ->
+                                        val videoUri = Uri.parse(path)
+                                        Box(
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(Color.Black)
+                                                .clickable {
+                                                    selectedMediaUri = videoUri
+                                                    selectedIsVideo = true
+                                                    mediaDialogOpen = true
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.PlayArrow,
+                                                    contentDescription = "Reproduzir vídeo",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(32.dp)
+                                                )
+                                                Spacer(Modifier.height(4.dp))
+                                                Text(
+                                                    text = "Vídeo",
+                                                    color = Color.White,
+                                                    fontSize = 10.sp,
+                                                    fontFamily = playpenSansVariableFontWght
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (report.latitude != null && report.longitude != null) {
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    text = "Localização:",
+                                    color = Color(0xFF7E8C54),
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    text = "Lat: ${report.latitude}, Lng: ${report.longitude}",
+                                    color = Color(0xFF7E8C54),
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF7E8C54).copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    text = "✅ Obrigado por contribuir com a proteção animal!",
+                                    color = Color(0xFF7E8C54),
+                                    fontFamily = playpenSansVariableFontWght,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (mediaDialogOpen && selectedMediaUri != null) {
+        MediaPreviewDialog(
+            uri = selectedMediaUri!!,
+            isVideo = selectedIsVideo,
+            onDismiss = {
+                mediaDialogOpen = false
+                selectedMediaUri = null
+                selectedIsVideo = false
+            }
+        )
+    }
+}
+

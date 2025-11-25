@@ -3,6 +3,7 @@ package br.com.petguard.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.Period
 
@@ -175,5 +176,28 @@ class AuthRepository(
         } catch (e: Exception) {
             false
         }
+    }
+}
+
+suspend fun getUserType(): String {
+    return try {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null) {
+            val document = FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(user.uid)
+                .get()
+                .await()
+
+            if (document.exists()) {
+                document.getString("userType") ?: "COMMON"
+            } else {
+                "COMMON"
+            }
+        } else {
+            "COMMON"
+        }
+    } catch (e: Exception) {
+        "COMMON"
     }
 }

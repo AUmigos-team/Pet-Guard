@@ -10,6 +10,9 @@ data class User(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
+    @ColumnInfo(name = "uid")
+    val uid: String,
+
     @ColumnInfo(name = "name")
     val name: String,
 

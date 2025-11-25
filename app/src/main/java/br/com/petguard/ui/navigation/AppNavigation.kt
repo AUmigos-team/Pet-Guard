@@ -29,6 +29,8 @@ import br.com.petguard.ui.screens.ReportsScreen
 import br.com.petguard.ui.screens.SettingsScreen
 import br.com.petguard.ui.screens.SplashScreen
 import br.com.petguard.ui.screens.UserTypeSelectionScreen
+import br.com.petguard.ui.screens.MyPendingReportsScreen
+import br.com.petguard.ui.screens.MyCompletedReportsScreen
 
 @Composable
 fun AppNavigation() {
@@ -79,6 +81,8 @@ fun AppNavigation() {
             composable("reports") { ReportsScreen(navController, repository) }
             composable("settings") { SettingsScreen(navController) }
             composable("user_type_selection") { UserTypeSelectionScreen(navController) }
+            composable("my_pending_reports") { MyPendingReportsScreen(navController, repository) }
+            composable("my_completed_reports") { MyCompletedReportsScreen(navController, repository) }
         }
     }
 }

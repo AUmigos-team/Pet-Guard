@@ -64,6 +64,7 @@ import androidx.navigation.NavController
 import br.com.petguard.data.database.AppDatabase
 import br.com.petguard.data.database.User
 import br.com.petguard.data.repository.UserRepository
+import com.google.firebase.auth.FirebaseAuth
 
 sealed class MediaItem {
     data class Photo(val uri: Uri, val bitmap: Bitmap) : MediaItem()
@@ -445,7 +446,9 @@ fun NewInspectionScreen(
                     createdAt = existingReport?.createdAt ?: LocalDateTime.now(),
                     updatedAt = LocalDateTime.now(),
                     createdBy = currentUserName,
-                    reportedByUserId = if (isCommonUser) currentUser?.id?.toString() else null,
+                    reportedByUserId = if (isCommonUser) {
+                        FirebaseAuth.getInstance().currentUser?.uid ?: currentUser?.id?.toString()
+                    } else null,
                     reportedByUserName = if (isCommonUser) currentUserName else null,
                     reportedByUserCpf = if (isCommonUser) currentUser?.cpf else null
                 )

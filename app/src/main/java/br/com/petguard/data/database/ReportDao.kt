@@ -35,4 +35,10 @@ interface ReportDao {
 
     @Query("SELECT * FROM report WHERE status != 'PENDING' AND reportedByUserId = :userId ORDER BY updatedAt DESC")
     fun getCompletedReportsByUserId(userId: String): Flow<List<Report>>
+
+    @Query("SELECT COUNT(*) FROM report WHERE status = 'PENDING' AND reportedByUserId = :userId")
+    suspend fun countPendingReportsByUserId(userId: String): Int
+
+    @Query("SELECT COUNT(*) FROM report WHERE status != 'PENDING' AND reportedByUserId = :userId")
+    suspend fun countCompletedReportsByUserId(userId: String): Int
 }

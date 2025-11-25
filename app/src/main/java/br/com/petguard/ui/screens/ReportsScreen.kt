@@ -63,6 +63,9 @@ import br.com.petguard.data.repository.UserRepository
 import coil.compose.rememberAsyncImagePainter
 import com.google.gson.Gson
 import br.com.petguard.data.database.User
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun ReportsScreen(navController: NavController, repository: ReportRepository) {
@@ -76,21 +79,34 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
     var currentUser by remember { mutableStateOf<User?>(null) }
     var isCommonUser by remember { mutableStateOf(false) }
 
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
+
+    var currentUserType by remember { mutableStateOf("COMMON") }
+    var currentUserId by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
     LaunchedEffect(Unit) {
-        currentUser = userRepository.getCurrentUser()
-        isCommonUser = currentUser?.userType == "COMMON"
+        val user = auth.currentUser
+        currentUserId = user?.uid
+
+        if (user != null) {
+            try {
+                val document = firestore.collection("users").document(user.uid).get().await()
+                if (document.exists()) {
+                    currentUserType = document.getString("userType") ?: "COMMON"
+                }
+            } catch (e: Exception) {
+                currentUserType = "COMMON"
+            }
+        }
 
         scope.launch {
-            if (isCommonUser) {
-                val userId = currentUser?.id?.toString() ?: ""
-                repository.getCompletedReportsByUserId(userId).collectLatest { userReports ->
-                    reports = userReports
+            repository.getCompletedReportsForCurrentUser(currentUserId, currentUserType)
+                .collect { reportsList ->
+                    reports = reportsList
+                    isLoading = false
                 }
-            } else {
-                repository.completedReports.collectLatest { allCompleted ->
-                    reports = allCompleted
-                }
-            }
         }
     }
 
@@ -123,7 +139,7 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
         ) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = if (isCommonUser) "Minhas Denúncias Concluídas" else "Relatórios Concluídos",
+                text = if (currentUserType == "COMMON") "Minhas Denúncias Concluídas" else "Relatórios Concluídos",
                 color = Color(0xFF6A4A2E),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -140,7 +156,7 @@ fun ReportsScreen(navController: NavController, repository: ReportRepository) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isCommonUser) "Você não possui denúncias concluídas"
+                    text = if (currentUserType == "COMMON") "Você não possui denúncias concluídas"
                     else "Não há denúncias concluídas",
                     color = Color(0xFF7E8C54),
                     fontSize = 16.sp,
@@ -359,36 +375,6 @@ fun CompletedReportCard(
                                 }
                             )
                         }
-
-//                        if (report.latitude != null && report.longitude != null) {
-//                            Spacer(Modifier.height(4.dp))
-//                            Text(
-//                                text = "Localização: ${report.latitude}, ${report.longitude}",
-//                                color = Color(0xFF7E8C54),
-//                                fontFamily = playpenSansVariableFontWght,
-//                                fontSize = 14.sp
-//                            )
-//                        }
-//
-//                        if (report.photoPath != null) {
-//                            Spacer(Modifier.height(4.dp))
-//                            Text(
-//                                text = "Foto anexada: ${report.photoPath}",
-//                                color = Color(0xFF7E8C54),
-//                                fontFamily = playpenSansVariableFontWght,
-//                                fontSize = 14.sp
-//                            )
-//                        }
-//
-//                        if (report.videoPath != null) {
-//                            Spacer(Modifier.height(4.dp))
-//                            Text(
-//                                text = "Vídeo anexado: ${report.videoPath}",
-//                                color = Color(0xFF7E8C54),
-//                                fontFamily = playpenSansVariableFontWght,
-//                                fontSize = 14.sp
-//                            )
-//                        }
                     }
                 }
             }
