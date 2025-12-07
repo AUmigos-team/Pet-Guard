@@ -43,7 +43,6 @@ import br.com.petguard.data.repository.AuthRepository
 import br.com.petguard.data.repository.UserRepository
 import br.com.petguard.ui.components.GuardPetLogo
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -128,7 +127,7 @@ fun InspectorUserLoginScreen(navController: NavController) {
                                     uid = firebaseUid,
                                     name = data["name"].toString(),
                                     email = "$registration@petguard.com.br",
-                                    birthDate = data["birthDate"].toString(),
+                                    birthDate = data["birthDate"].toString() ?: "",
                                     cpf = data["cpf"].toString(),
                                     userType = "INSPECTOR",
                                     logged = true

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement.Absolute.SpaceEvenly
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,7 +27,7 @@ import androidx.navigation.NavController
 import br.com.petguard.R
 
 @Composable
-fun BottomMenu(navController: NavController, currentScreen: String = "home", modifier: Modifier = Modifier) {
+fun BottomMenu(navController: NavController, currentScreen: String = "home", modifier: Modifier = Modifier, userType: String = "COMMON") {
     val playpenSansVariableFontWght = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
     Card(
@@ -115,7 +114,11 @@ fun BottomMenu(navController: NavController, currentScreen: String = "home", mod
                     .weight(1f)
                     .clickable {
                         if (currentScreen != "relatorios") {
-                            navController.navigate("reports")
+                            if (userType == "COMMON") {
+                                navController.navigate("my_completed_reports")
+                            } else {
+                                navController.navigate("reports")
+                            }
                         }
                     }
             ) {
@@ -125,7 +128,7 @@ fun BottomMenu(navController: NavController, currentScreen: String = "home", mod
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
-                    text = "Relatórios",
+                    text = if (userType == "COMMON") "Concluídas" else "Relatórios",
                     fontFamily = playpenSansVariableFontWght,
                     color = if (currentScreen == "relatorios") Color(0xFF7E8C54) else Color(0xFF452001),
                     fontWeight = if (currentScreen == "relatorios") FontWeight.Bold else FontWeight.Medium,
@@ -135,7 +138,11 @@ fun BottomMenu(navController: NavController, currentScreen: String = "home", mod
                         .weight(1f)
                         .clickable {
                             if (currentScreen != "relatorios") {
-                                navController.navigate("reports")
+                                if (userType == "COMMON") {
+                                    navController.navigate("my_completed_reports")
+                                } else {
+                                    navController.navigate("reports")
+                                }
                             }
                         }
                 )

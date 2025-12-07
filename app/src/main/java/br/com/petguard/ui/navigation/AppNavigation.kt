@@ -8,7 +8,9 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +33,10 @@ import br.com.petguard.ui.screens.SplashScreen
 import br.com.petguard.ui.screens.UserTypeSelectionScreen
 import br.com.petguard.ui.screens.MyPendingReportsScreen
 import br.com.petguard.ui.screens.MyCompletedReportsScreen
+import androidx.compose.runtime.setValue
+import br.com.petguard.data.database.User
+import br.com.petguard.data.repository.UserRepository
+
 
 @Composable
 fun AppNavigation() {
@@ -38,6 +44,15 @@ fun AppNavigation() {
     val context = LocalContext.current
     val appDatabase = AppDatabase.getDatabase(context)
     val repository = remember { ReportRepository(appDatabase, context) }
+
+    val userRepository = remember { UserRepository(appDatabase) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+    var isCommonUser by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        currentUser = userRepository.getCurrentUser()
+        isCommonUser = currentUser?.userType == "COMMON"
+    }
 
     val bottomItems = listOf(
         BottomNavItem("home", "Denúncias", Icons.Filled.Home),
@@ -57,7 +72,7 @@ fun AppNavigation() {
                     "inspector_register",
                     "inspector_login",
                     "user_type_selection")) {
-                BottomNavBar(navController, bottomItems)
+                BottomNavBar(navController)
             }
         }
     ) { innerPadding ->
