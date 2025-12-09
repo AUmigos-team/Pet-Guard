@@ -110,6 +110,11 @@ fun CommonUserLoginScreen(navController: NavController) {
 
         Button(
             onClick = {
+                if (email.isBlank() || password.isBlank()) {
+                    Toast.makeText(context, "Por favor, Preencha todos os campos.", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
                 authRepo.loginUser(email, password,
                     onSuccess = {
                         authRepo.getCurrentUserData(

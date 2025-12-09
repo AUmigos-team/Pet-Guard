@@ -5,12 +5,39 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
-import java.time.Period
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
+    suspend fun emailExists(email: String): Boolean {
+        return try {
+            val query = db.collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .await()
+
+            !query.isEmpty
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun cpfExists(cpf: String): Boolean {
+        return try {
+            val query = db.collection("users")
+                .whereEqualTo("cpf", cpf)
+                .get()
+                .await()
+
+            !query.isEmpty
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     fun registerCommonUser(
         name: String,
@@ -26,38 +53,49 @@ class AuthRepository(
             return
         }
 
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
-
-                    val userData = hashMapOf(
-                        "name" to name,
-                        "birthDate" to birthDate,
-                        "cpf" to cpf,
-                        "email" to email,
-                        "userType" to "COMMON",
-                        "registration" to "",
-                    )
-
-                    db.collection("users")
-                        .document(userId)
-                        .set(userData)
-                        .addOnSuccessListener { onSuccess() }
-                        .addOnFailureListener { e ->
-                            onError("Erro ao salvar o usuário: ${e.message}")
-                        }
-
-                }else {
-                    val error = when (task.exception) {
-                        is FirebaseAuthUserCollisionException ->
-                            "Email ja cadastrado."
-                        else -> task.exception?.message ?: "Erro desconhecido."
-                    }
-                    onError(error)
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            if (emailExists(email)) {
+                onError("Email já cadastrado.")
+                return@launch
             }
 
+            if (cpfExists(cpf)) {
+                onError("CPF já cadastrado.")
+                return@launch
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+
+                        val userData = hashMapOf(
+                            "name" to name,
+                            "birthDate" to birthDate,
+                            "cpf" to cpf,
+                            "email" to email,
+                            "userType" to "COMMON",
+                            "registration" to "",
+                        )
+
+                        db.collection("users")
+                            .document(userId)
+                            .set(userData)
+                            .addOnSuccessListener { onSuccess() }
+                            .addOnFailureListener { e ->
+                                onError("Erro ao salvar o usuário: ${e.message}")
+                            }
+
+                    }else {
+                        val error = when (task.exception) {
+                            is FirebaseAuthUserCollisionException ->
+                                "Email já cadastrado."
+                            else -> task.exception?.message ?: "Erro desconhecido."
+                        }
+                        onError(error)
+                    }
+                }
+        }
 
     }
 
@@ -70,36 +108,44 @@ class AuthRepository(
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
-
-                    val userData = hashMapOf(
-                        "name" to name,
-                        "registration" to registration,
-                        "cpf" to cpf,
-                        "email" to email,
-                        "userType" to "INSPECTOR"
-                    )
-
-                    db.collection("users")
-                        .document(userId)
-                        .set(userData)
-                        .addOnSuccessListener { onSuccess() }
-                        .addOnFailureListener { e ->
-                            onError("Erro ao salvar o usuário: ${e.message}")
-                        }
-
-                } else {
-                    val error = when (task.exception) {
-                        is FirebaseAuthUserCollisionException ->
-                            "Email já cadastrado."
-                        else -> task.exception?.message ?: "Erro desconhecido."
-                    }
-                    onError(error)
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            if (cpfExists(cpf)) {
+                onError("CPF já cadastrado.")
+                return@launch
             }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+
+                        val userData = hashMapOf(
+                            "name" to name,
+                            "registration" to registration,
+                            "cpf" to cpf,
+                            "email" to email,
+                            "userType" to "INSPECTOR"
+                        )
+
+                        db.collection("users")
+                            .document(userId)
+                            .set(userData)
+                            .addOnSuccessListener { onSuccess() }
+                            .addOnFailureListener { e ->
+                                onError("Erro ao salvar o usuário: ${e.message}")
+                            }
+
+                    } else {
+                        val error = when (task.exception) {
+                            is FirebaseAuthUserCollisionException ->
+                                "Email/matrícula já cadastrado."
+                            else -> task.exception?.message ?: "Erro desconhecido."
+                        }
+                        onError(error)
+                    }
+                }
+        }
+
     }
 
 
@@ -176,28 +222,5 @@ class AuthRepository(
         } catch (e: Exception) {
             false
         }
-    }
-}
-
-suspend fun getUserType(): String {
-    return try {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            val document = FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(user.uid)
-                .get()
-                .await()
-
-            if (document.exists()) {
-                document.getString("userType") ?: "COMMON"
-            } else {
-                "COMMON"
-            }
-        } else {
-            "COMMON"
-        }
-    } catch (e: Exception) {
-        "COMMON"
     }
 }

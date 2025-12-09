@@ -111,7 +111,7 @@ fun InspectorUserLoginScreen(navController: NavController) {
         Button(
             onClick = {
                 if (registration.isBlank() || password.isBlank()) {
-                    Toast.makeText(context, "Preencha todos os campos.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Por favor, Preencha todos os campos.", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 

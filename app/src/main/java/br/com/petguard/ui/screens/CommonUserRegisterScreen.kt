@@ -202,6 +202,9 @@ fun CommonUserRegisterScreen(navController: NavController) {
                 if (name.isBlank() || birthDigits.isBlank() || cpf.isBlank() || email.isBlank() || password.isBlank()) {
                     Toast.makeText(context, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show()
                     return@Button
+                } else if(cpf.length > 11) {
+                    Toast.makeText(context, "O CPF não pode ter mais de 11 números", Toast.LENGTH_SHORT).show()
+                    return@Button
                 }
 
                 if (!isDateCompleteFromDigits(birthDigits)) {

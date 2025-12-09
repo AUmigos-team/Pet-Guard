@@ -156,6 +156,9 @@ fun InspectorUserRegisterScreen(navController: NavController) {
                 if (name.isBlank() || registration.isBlank() || cpf.isBlank() || password.isBlank()) {
                     Toast.makeText(context, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show()
                     return@Button
+                } else if(cpf.length > 11) {
+                    Toast.makeText(context, "O CPF não pode ter mais de 11 números", Toast.LENGTH_SHORT).show()
+                    return@Button
                 }
 
                 authRepo.registerInspectorUser(
