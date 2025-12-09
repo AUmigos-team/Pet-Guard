@@ -50,6 +50,7 @@ import br.com.petguard.data.repository.UserRepository
 import br.com.petguard.ui.components.GuardPetLogo
 import br.com.petguard.ui.theme.ThemeManager
 import br.com.petguard.ui.theme.ThemePreference
+import br.com.petguard.util.NotificationPreference
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -63,11 +64,15 @@ fun SettingsScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val playpenSans = FontFamily(Font(R.font.playpensans_variablefont_wght))
 
-    var notificationsEnabled by remember { mutableStateOf(true) }
     var darkModeEnabled by remember { mutableStateOf(ThemeManager.isDarkTheme.value) }
 
     var loggedUser by remember { mutableStateOf<User?>(null) }
     var isCommonUser by remember { mutableStateOf(false) }
+
+    val notificationPreference = remember { NotificationPreference(context) }
+    var notificationsEnabled by remember {
+        mutableStateOf(notificationPreference.areNotificationsEnabled())
+    }
 
     LaunchedEffect(Unit) {
         val localUser = userRepository.getCurrentUser()
@@ -210,7 +215,10 @@ fun SettingsScreen(navController: NavController) {
             )
             Switch(
                 checked = notificationsEnabled,
-                onCheckedChange = { notificationsEnabled = it },
+                onCheckedChange = { newValue ->
+                    notificationsEnabled = newValue
+                    notificationPreference.setNotificationsEnabled(newValue)
+                },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
                     checkedTrackColor = Color(0xFF7E8C54),

@@ -7,8 +7,11 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import br.com.petguard.R
 import br.com.petguard.data.database.Report
+import br.com.petguard.util.NotificationPreference
 
 class NotificationService(private val context: Context) {
+    private val notificationPreference = NotificationPreference(context)
+
     companion object {
         const val CHANNEL_ID = "petguard_notifications"
         const val CHANNEL_NAME = "PetGuard Notifications"
@@ -34,6 +37,10 @@ class NotificationService(private val context: Context) {
     }
 
     fun sendNotification(report: Report) {
+        if (!notificationPreference.areNotificationsEnabled()) {
+            return
+        }
+
         if (report.reportedByUserId != null) {
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setContentTitle("✅ Denúncia Atendida")
